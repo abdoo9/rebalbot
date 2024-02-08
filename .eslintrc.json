@@ -39,6 +39,9 @@
       "error",
       {
         "trailingComma": "all"
+      },
+      {
+        "endOfLine": "auto"
       }
     ],
     "unicorn/no-array-method-this-argument": "off",

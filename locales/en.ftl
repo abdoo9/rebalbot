@@ -5,7 +5,9 @@ language_command =
 setcommands_command =
     .description = Set bot commands
 
-welcome = Welcome!
+welcome = 
+    .text = welcome, please choose the currency you want to convert from
+    .choose-currency = choose currency
 language = 
     .select = Please, select your language
     .changed = Language successfully changed!

@@ -1,7 +1,7 @@
 import { autoChatAction } from "@grammyjs/auto-chat-action";
 import { hydrate } from "@grammyjs/hydrate";
 import { hydrateReply, parseMode } from "@grammyjs/parse-mode";
-import { BotConfig, StorageAdapter, Bot as TelegramBot, session } from "grammy";
+import { BotConfig, StorageAdapter, Bot as TelegramBot } from "grammy";
 import {
   Context,
   SessionData,
@@ -12,23 +12,26 @@ import {
   languageFeature,
   unhandledFeature,
   welcomeFeature,
+  inlineQueryFeature,
 } from "#root/bot/features/index.js";
 import { errorHandler } from "#root/bot/handlers/index.js";
 import { i18n, isMultipleLocales } from "#root/bot/i18n.js";
 import { updateLogger } from "#root/bot/middlewares/index.js";
 import { config } from "#root/config.js";
 import { logger } from "#root/logger.js";
+import type { PrismaClientX } from "#root/prisma/index.js";
 
 type Options = {
+  prisma: PrismaClientX;
   sessionStorage?: StorageAdapter<SessionData>;
   config?: Omit<BotConfig<Context>, "ContextConstructor">;
 };
 
-export function createBot(token: string, options: Options = {}) {
-  const { sessionStorage } = options;
+export function createBot(token: string, options: Options) {
+  const { prisma } = options;
   const bot = new TelegramBot(token, {
     ...options.config,
-    ContextConstructor: createContextConstructor({ logger }),
+    ContextConstructor: createContextConstructor({ logger, prisma }),
   });
   const protectedBot = bot.errorBoundary(errorHandler);
 
@@ -42,17 +45,18 @@ export function createBot(token: string, options: Options = {}) {
   protectedBot.use(autoChatAction(bot.api));
   protectedBot.use(hydrateReply);
   protectedBot.use(hydrate());
-  protectedBot.use(
-    session({
-      initial: () => ({}),
-      storage: sessionStorage,
-    }),
-  );
+  // protectedBot.use(
+  //   session({
+  //     initial: () => ({}),
+  //     storage: sessionStorage,
+  //   }),
+  // );
   protectedBot.use(i18n);
 
   // Handlers
   protectedBot.use(welcomeFeature);
   protectedBot.use(adminFeature);
+  protectedBot.use(inlineQueryFeature);
 
   if (isMultipleLocales) {
     protectedBot.use(languageFeature);
