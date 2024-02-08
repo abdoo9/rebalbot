@@ -1,0 +1,15 @@
+version: '3'
+services:
+
+  mysql:
+    volumes:
+      - "mysql-data:/data/mysql"
+    env_file:
+      - docker-compose.prod.mysql.env
+
+  bot:
+    env_file:
+      - docker-compose.prod.bot.env
+
+volumes:
+  mysql-data:
