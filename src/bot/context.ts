@@ -1,0 +1,49 @@
+import { Update, UserFromGetMe } from "@grammyjs/types";
+import { Context as DefaultContext, SessionFlavor, type Api } from "grammy";
+import type { AutoChatActionFlavor } from "@grammyjs/auto-chat-action";
+import type { HydrateFlavor } from "@grammyjs/hydrate";
+import type { I18nFlavor } from "@grammyjs/i18n";
+import type { ParseModeFlavor } from "@grammyjs/parse-mode";
+import type { Logger } from "#root/logger.js";
+import type { PrismaClientX } from "#root/prisma/index.js";
+
+export type SessionData = {
+  // field?: string;
+};
+
+type ExtendedContextFlavor = {
+  prisma: PrismaClientX;
+  logger: Logger;
+};
+
+export type Context = ParseModeFlavor<
+  HydrateFlavor<
+    DefaultContext &
+      ExtendedContextFlavor &
+      SessionFlavor<SessionData> &
+      I18nFlavor &
+      AutoChatActionFlavor
+  >
+>;
+
+interface Dependencies {
+  prisma: PrismaClientX;
+  logger: Logger;
+}
+
+export function createContextConstructor({ logger, prisma }: Dependencies) {
+  return class extends DefaultContext implements ExtendedContextFlavor {
+    prisma: PrismaClientX;
+
+    logger: Logger;
+
+    constructor(update: Update, api: Api, me: UserFromGetMe) {
+      super(update, api, me);
+
+      this.prisma = prisma;
+      this.logger = logger.child({
+        update_id: this.update.update_id,
+      });
+    }
+  } as unknown as new (update: Update, api: Api, me: UserFromGetMe) => Context;
+}
