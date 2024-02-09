@@ -9,7 +9,6 @@ export const currencies = [
   },
   {
     name: "Zain Cash",
-    image:
-      "https://www.nopcommerce.com/images/thumbs/0019219_zain-cash-payment-module.jpeg",
+    image: "https://iili.io/J1YKe1I.md.png",
   },
 ];

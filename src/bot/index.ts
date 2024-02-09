@@ -1,7 +1,8 @@
 import { autoChatAction } from "@grammyjs/auto-chat-action";
 import { hydrate } from "@grammyjs/hydrate";
 import { hydrateReply, parseMode } from "@grammyjs/parse-mode";
-import { BotConfig, StorageAdapter, Bot as TelegramBot } from "grammy";
+import { BotConfig, StorageAdapter, Bot as TelegramBot, session } from "grammy";
+import { PrismaAdapter } from "@grammyjs/storage-prisma";
 import {
   Context,
   SessionData,
@@ -13,6 +14,7 @@ import {
   unhandledFeature,
   welcomeFeature,
   inlineQueryFeature,
+  requestFeature,
 } from "#root/bot/features/index.js";
 import { errorHandler } from "#root/bot/handlers/index.js";
 import { i18n, isMultipleLocales } from "#root/bot/i18n.js";
@@ -45,18 +47,20 @@ export function createBot(token: string, options: Options) {
   protectedBot.use(autoChatAction(bot.api));
   protectedBot.use(hydrateReply);
   protectedBot.use(hydrate());
-  // protectedBot.use(
-  //   session({
-  //     initial: () => ({}),
-  //     storage: sessionStorage,
-  //   }),
-  // );
+  protectedBot.use(
+    session({
+      initial: () => ({}),
+      storage: new PrismaAdapter(prisma.session),
+      getSessionKey: (ctx) => String(ctx.chat?.id ?? ctx.inlineQuery?.from?.id),
+    }),
+  );
   protectedBot.use(i18n);
 
   // Handlers
   protectedBot.use(welcomeFeature);
   protectedBot.use(adminFeature);
   protectedBot.use(inlineQueryFeature);
+  protectedBot.use(requestFeature);
 
   if (isMultipleLocales) {
     protectedBot.use(languageFeature);
