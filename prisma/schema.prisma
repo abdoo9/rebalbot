@@ -19,7 +19,7 @@ model User {
 }
 
 model Request {
-  id           String    @id @default(uuid())
+  id           String    @id @unique @default(uuid())
   userId       Int       @map("user_id")
   messageId    Int       @map("message_id")
   fromCurrency String?   @map("from_currency")
@@ -27,6 +27,7 @@ model Request {
   submittedAt  DateTime? @map("submitted_at")
   amount       Float?
   description  String?
+  fromWallet   String?   @map("from_wallet")
   exchangeRate Float     @map("exchange_rate")
   updatedAt    DateTime  @updatedAt @map("updated_at")
   createdAt    DateTime  @default(now()) @map("created_at")
@@ -40,6 +41,7 @@ model ExchangeRate {
   from      String   @map("from_currency")
   to        String   @map("to_currency")
   rate      Float
+  fee       Float
   updatedAt DateTime @updatedAt @map("updated_at")
   createdAt DateTime @default(now()) @map("created_at")
 

@@ -25,11 +25,24 @@ currency =
 request = 
     .text = من عملة: {$fromCurrency}
         الى عملة: {$toCurrency}
+        { $exchangeRate ->
+            [not-provided] ​
+           *[other] سعر الصرف : { $exchangeRate }
+        }
         الكمية: {$amount}
-        سعر الصرف: {$rate}
+        { $fromWallet ->
+            [not-provided] ​
+           *[other] المحفظة التي سيتم التحويل منها: { $fromWallet }
+        }
     .choose-to-currency = اختر العملة التي تريد استلامها
     .choose-from-currency = اختر العملة التي تريد ارسالها
     .amount-required = قم بارسال مبلغ ال({$fromCurrency}) الذي تريد تحويله
+    .from-wallet-required = قم بارسال معلومات محفظة ال({$fromCurrency}) التي سيتم التحويل منها
+    .submit = تاكيد طلب التحويل
+    .cancel = الغاء الطلب
+
+admins-group =
+    .submited-request-text = { request.text }
 currencies =
     .zainCash = زين كاش
     .payeer = باير

@@ -15,6 +15,7 @@ import {
   welcomeFeature,
   inlineQueryFeature,
   requestFeature,
+  setRateFeature,
 } from "#root/bot/features/index.js";
 import { errorHandler } from "#root/bot/handlers/index.js";
 import { i18n, isMultipleLocales } from "#root/bot/i18n.js";
@@ -61,6 +62,7 @@ export function createBot(token: string, options: Options) {
   protectedBot.use(adminFeature);
   protectedBot.use(inlineQueryFeature);
   protectedBot.use(requestFeature);
+  protectedBot.use(setRateFeature);
 
   if (isMultipleLocales) {
     protectedBot.use(languageFeature);
