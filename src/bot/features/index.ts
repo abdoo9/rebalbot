@@ -7,3 +7,5 @@ export * from "./request.js";
 export * from "./set-rate.js";
 export * from "./add-exchange.js";
 export * from "./delete-exchange.js";
+export * from "./set-currency-image.js";
+export * from "./callback-query.js";

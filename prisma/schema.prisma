@@ -19,34 +19,51 @@ model User {
 }
 
 model Request {
-  id           String    @id @unique @default(uuid())
-  userId       Int       @map("user_id")
-  messageId    Int       @map("message_id")
-  fromCurrency String?   @map("from_currency")
-  toCurrency   String?   @map("to_currency")
-  submittedAt  DateTime? @map("submitted_at")
-  amount       Float?
-  description  String?
-  fromWallet   String?   @map("from_wallet")
-  exchangeRate Float     @map("exchange_rate")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  User         User      @relation(fields: [userId], references: [id])
+  id                  String    @id @unique @default(uuid())
+  userId              Int       @map("user_id")
+  messageId           Int       @map("message_id")
+  fromCurrency        String?   @map("from_currency")
+  toCurrency          String?   @map("to_currency")
+  submittedAt         DateTime? @map("submitted_at")
+  amount              Float?
+  fee                 Float?
+  finalAmount         Float?    @map("final_amount")
+  description         String?
+  fromWallet          String?   @map("from_wallet")
+  userReceivingWallet String?   @map("user_receiving_wallet")
+  transactionId       String?   @map("transaction_id")
+  photoId             String?   @map("photo_id")
+  exchangeRate        Float     @map("exchange_rate")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  User                User      @relation(fields: [userId], references: [id])
 
   @@map(name: "requests")
 }
 
 model ExchangeRate {
-  id        Int      @id @default(autoincrement())
-  from      String   @map("from_currency")
-  to        String   @map("to_currency")
-  rate      Float
-  fee       Float
-  updatedAt DateTime @updatedAt @map("updated_at")
-  createdAt DateTime @default(now()) @map("created_at")
+  id           Int      @id @default(autoincrement())
+  from         String   @map("from_currency")
+  to           String   @map("to_currency")
+  FromCurrency Currency @relation("FromCurrencyExchangeRates", fields: [from], references: [currency])
+  ToCurrency   Currency @relation("ToCurrencyExchangeRates", fields: [to], references: [currency])
+  rate         Float
+  fee          Float
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  createdAt    DateTime @default(now()) @map("created_at")
 
   @@unique([from, to], name: "unique_from_to")
   @@map(name: "exchange_rates")
+}
+
+model Currency {
+  currency                  String         @id @unique
+  sticker                   String
+  adminWallet               String         @map("admin_wallet")
+  FromCurrencyExchangeRates ExchangeRate[] @relation("FromCurrencyExchangeRates")
+  ToCurrencyExchangeRates   ExchangeRate[] @relation("ToCurrencyExchangeRates")
+
+  @@map("currencies")
 }
 
 model Session {

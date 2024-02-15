@@ -25,24 +25,52 @@ currency =
 request = 
     .text = من عملة: {$fromCurrency}
         الى عملة: {$toCurrency}
-        { $exchangeRate ->
+        { $rate ->
             [not-provided] ​
-           *[other] سعر الصرف : { $exchangeRate }
+           *[other] سعر الصرف : { $rate }
         }
-        الكمية: {$amount}
+        { $fee ->
+            [not-provided] ​
+           *[other] العمولة: { $fee }
+        }
+        { $finalAmount ->
+            [not-provided] ​
+           *[other]المبلغ الذي تستلمه: <code>{ $finalAmount }</code>
+        }
+        المبلغ الذي ترسله: {$amount}
+        { $userReceivingWallet ->
+            [not-provided] ​
+           *[other] المحفظة التي تريد الاستلام عليها: <code>{ $userReceivingWallet }</code>
+        }
         { $fromWallet ->
             [not-provided] ​
-           *[other] المحفظة التي سيتم التحويل منها: { $fromWallet }
+           *[other] المحفظة التي سيتم التحويل منها: <code>{ $fromWallet }</code>
+        }
+        { $transactionId ->
+            [not-provided] ​
+           *[other]رقم العملية: <code>{ $transactionId }</code>
         }
     .choose-to-currency = اختر العملة التي تريد استلامها
     .choose-from-currency = اختر العملة التي تريد ارسالها
-    .amount-required = قم بارسال مبلغ ال({$fromCurrency}) الذي تريد تحويله
-    .from-wallet-required = قم بارسال معلومات محفظة ال({$fromCurrency}) التي سيتم التحويل منها
+    .amount-required =<b> قم بارسال مبلغ ال({$fromCurrency}) الذي تريد تحويله</b>
+    .from-wallet-required =<b>قم بارسال معلومات محفظة ال({$fromCurrency}) التي سيتم التحويل منها</b>
+    .user-receiving-wallet-required =قم بارسال محفظة ال({$toCurrency}) التي تريد استلام المبلغ عليها
+    .photo-required = {request.text}
+        <b>يرجى ارسال صورة اثبات التحويل</b>
+    .transaction-id-required = {request.text} <b>قم بالتحويل الى المحفظة التالية</b> <code>{ $adminWallet }</code>
+         <b>ثم قم بارسال رقم العملية</b>
     .submit = تاكيد طلب التحويل
     .cancel = الغاء الطلب
+    .submited = تم رفع طلبك بنجاح يرجى انتظار لبضع دقائق لمراجعة الطلب الخاص بكم
+    .submited-request-text = رقم الطلب:<code> { $requestId }</code>
+         { request.text }
+         محفظة الادمن: <code>{ $adminWallet }</code>
+    .already-submited = { request.submited }
 
 admins-group =
-    .submited-request-text = { request.text }
+    .submited-request-text = رقم الطلب:<code> { $requestId }</code>
+         { request.text }
+         محفظة الادمن: <code>{ $adminWallet }</code>
 currencies =
     .zainCash = زين كاش
     .payeer = باير

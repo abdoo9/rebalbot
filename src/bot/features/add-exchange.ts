@@ -28,12 +28,14 @@ feature.on("channel_post:text", logHandle("command-channel"), async (ctx) => {
           fee: Number(fee),
         },
       })
+      .then(() => {
+        ctx.reply(
+          `new exchange have been added \n from: ${from}\nto: ${to}\nrate: ${rate}\nfee: ${fee}`,
+        );
+      })
       .catch((error) => {
         ctx.reply(error.message);
       });
-    ctx.reply(
-      `new exchange have been added \n from: ${from}\nto: ${to}\nrate: ${rate}\nfee: ${fee}`,
-    );
   }
 });
 
