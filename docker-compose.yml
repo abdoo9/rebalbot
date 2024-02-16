@@ -15,7 +15,7 @@ services:
       - "traefik.http.routers.rebalbot-secure.rule=Host(`rebalbot.abdood.eu.org`)"
       - "traefik.http.services.rebalbot.loadbalancer.server.port=8747"
     volumes:
-      - /home/rebaldatabasefile/dev.sqlite:/app/dev.sqlite
+      - /home/rebaldatabasefile/dev.sqlite:/usr/src/dev.sqlite
 
 networks:
   proxy:

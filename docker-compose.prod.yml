@@ -1,6 +1,6 @@
 version: '3'
 services:
 
-  bot:
+  rebalbot:
     env_file:
       - docker-compose.bot.prod.env
