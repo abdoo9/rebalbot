@@ -198,6 +198,7 @@ feature.hears(
   /.*/,
   logHandle("message-user-reciving-wallet"),
   async (ctx, next) => {
+    if (ctx.session.notSubmittedRequestId === undefined) await next();
     const request = await ctx.prisma.request.findUnique({
       where: {
         id: ctx.session.notSubmittedRequestId,

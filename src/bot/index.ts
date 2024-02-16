@@ -62,6 +62,9 @@ export function createBot(token: string, options: Options) {
   protectedBot.use(i18n);
 
   // Handlers
+  if (isMultipleLocales) {
+    protectedBot.use(languageFeature);
+  }
   protectedBot.use(welcomeFeature);
   protectedBot.use(adminFeature);
   protectedBot.use(inlineQueryFeature);
@@ -71,10 +74,6 @@ export function createBot(token: string, options: Options) {
   protectedBot.use(setCurrencyImageFeature);
   protectedBot.use(setRateFeature);
   protectedBot.use(callbackQueryFeature);
-
-  if (isMultipleLocales) {
-    protectedBot.use(languageFeature);
-  }
 
   // must be the last handler
   protectedBot.use(unhandledFeature);
