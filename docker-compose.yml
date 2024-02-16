@@ -1,0 +1,22 @@
+version: '3'
+services:
+
+  rebalbot:
+    build:
+      context: .
+    restart: unless-stopped
+    networks:
+      - default
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.rebalbot-secure.entrypoints=websecure"
+      - "traefik.http.routers.rebalbot-secure.rule=Host(`rebalbot.abdood.eu.org`)"
+      - "traefik.http.services.rebalbot.loadbalancer.server.port=8747"
+    volumes:
+      - /home/rebaldatabasefile/dev.sqlite:/app/dev.sqlite
+
+networks:
+  proxy:
+    external: true
