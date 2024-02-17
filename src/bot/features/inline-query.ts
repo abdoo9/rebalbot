@@ -6,16 +6,14 @@ import { prisma } from "#root/prisma/index.js";
 const composer = new Composer<Context>();
 const feature = composer;
 
-const currencies = await prisma.currency.findMany({
-  where: {
-    FromCurrencyExchangeRates: {
-      some: {},
-    },
-  },
+const currencies = await prisma.exchangeRate.findMany({
+  include: { FromCurrency: true, ToCurrency: true },
 });
+const fromCurrencies = currencies.map((currency) => currency.FromCurrency);
+const toCurrencies = currencies.map((currency) => currency.ToCurrency);
 feature.inlineQuery("📤$", logHandle("inline-query-currency"), async (ctx) => {
   await ctx.answerInlineQuery(
-    currencies.map((currency) => {
+    fromCurrencies.map((currency) => {
       return {
         type: "sticker",
         sticker_file_id: currency.sticker,
@@ -39,7 +37,7 @@ feature.inlineQuery("📤$", logHandle("inline-query-currency"), async (ctx) => 
 });
 feature.inlineQuery("📥$", logHandle("inline-query-currency"), async (ctx) => {
   await ctx.answerInlineQuery(
-    currencies.map((currency) => {
+    toCurrencies.map((currency) => {
       return {
         type: "sticker",
         sticker_file_id: currency.sticker,

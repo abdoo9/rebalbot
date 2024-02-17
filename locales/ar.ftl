@@ -71,9 +71,3 @@ admins-group =
     .submited-request-text = رقم الطلب:<code> { $requestId }</code>
          { request.text }
          محفظة الادمن: <code>{ $adminWallet }</code>
-currencies =
-    .zainCash = زين كاش
-    .payeer = باير
-    .perfectMoney = بيرفكت موني
-    .usdt = يو اس دي تي
-    .bitcoin = بيتكوين

@@ -3,12 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  id         Int       @id @default(autoincrement())
   telegramId BigInt    @unique @map("telegram_id")
   contact    String?
   updatedAt  DateTime  @updatedAt @map("updated_at")
@@ -19,8 +19,8 @@ model User {
 }
 
 model Request {
-  id                  String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId              String    @map("user_id") @db.ObjectId
+  id                  String    @id @unique @default(uuid())
+  userId              Int       @map("user_id")
   messageId           Int       @map("message_id")
   fromCurrency        String?   @map("from_currency")
   toCurrency          String?   @map("to_currency")
@@ -42,7 +42,7 @@ model Request {
 }
 
 model ExchangeRate {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  id           Int      @id @default(autoincrement())
   from         String   @map("from_currency")
   to           String   @map("to_currency")
   FromCurrency Currency @relation("FromCurrencyExchangeRates", fields: [from], references: [currency])
@@ -57,8 +57,7 @@ model ExchangeRate {
 }
 
 model Currency {
-  id                        String         @id @default(auto()) @map("_id") @db.ObjectId
-  currency                  String         @unique @map("currency")
+  currency                  String         @id @unique
   sticker                   String
   adminWallet               String         @map("admin_wallet")
   FromCurrencyExchangeRates ExchangeRate[] @relation("FromCurrencyExchangeRates")
@@ -68,7 +67,7 @@ model Currency {
 }
 
 model Session {
-  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  id    Int    @id @default(autoincrement())
   key   String @unique
   value String
 }
