@@ -8,6 +8,7 @@ import { prisma } from "#root/prisma/index.js";
 import { i18n } from "../i18n.js";
 import { calculateFinalAmountAfterFee } from "../helpers/calculate-final-amount-after-fee.js";
 import { generateShortId } from "../helpers/get-short-id.js";
+import { escapeHTML } from "../helpers/escape-html.js";
 
 const composer = new Composer<Context>();
 
@@ -484,19 +485,26 @@ feature.callbackQuery(
           });
         });
       await ctx.api.sendPhoto(config.ADMINS_CHAT_ID, photoId, {
-        caption: ctx.t("admins-group.submited-request-text", {
-          requestId,
-          toCurrency,
-          fromCurrency,
-          amount: `${String(amount)} ​`,
-          fromWallet,
-          transactionId,
-          rate: `${String(rate)} ​`,
-          fee: `${String(fee)} ​`,
-          finalAmount: `${String(finalAmount)} ​`,
-          userReceivingWallet,
-          adminWallet,
-        }),
+        caption: `<a href="https://t.me/${ctx.from?.id}">📇​</a>${ctx.t(
+          ctx.t("admins-group.submited-request-text", {
+            requestId,
+            userId: `${String(ctx.from?.id)} ​`,
+            name: escapeHTML(
+              `| ${ctx.from?.first_name} ${ctx.from?.last_name ?? ""}`,
+            ),
+            username: ctx.from?.username ?? "not-provided",
+            toCurrency,
+            fromCurrency,
+            amount: `${String(amount)} ​`,
+            fromWallet,
+            transactionId,
+            rate: `${String(rate)} ​`,
+            fee: `${String(fee)} ​`,
+            finalAmount: `${String(finalAmount)} ​`,
+            userReceivingWallet,
+            adminWallet,
+          }),
+        )}`,
         reply_markup: new InlineKeyboard([
           [
             {

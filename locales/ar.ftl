@@ -74,5 +74,8 @@ request =
     .reject = الرفض
 admins-group =
     .submited-request-text = رقم الطلب:<code> { $requestId }</code>
+         معرف العميل: @{ $username }
+         ايدي العميل: { $userId }
+         اسم العميل: <a href="tg://user?id={ $userId }">{ $name }</a>
          { request.text }
          محفظة الادمن: <code>{ $adminWallet }</code>
