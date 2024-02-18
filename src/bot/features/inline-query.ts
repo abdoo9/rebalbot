@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-array-reduce */
 import { Composer } from "grammy";
 import type { Context } from "#root/bot/context.js";
 import { logHandle } from "#root/bot/helpers/logging.js";
@@ -9,8 +10,35 @@ const feature = composer;
 const currencies = await prisma.exchangeRate.findMany({
   include: { FromCurrency: true, ToCurrency: true },
 });
-const fromCurrencies = currencies.map((currency) => currency.FromCurrency);
-const toCurrencies = currencies.map((currency) => currency.ToCurrency);
+const fromCurrencies = currencies
+  .map((currency) => currency.FromCurrency)
+  .reduce(
+    (
+      unique: { currency: string; sticker: string; adminWallet: string }[],
+      item,
+    ) => {
+      return unique.findIndex((object) => object.currency === item.currency) >=
+        0
+        ? unique
+        : [...unique, item];
+    },
+    [],
+  );
+
+const toCurrencies = currencies
+  .map((currency) => currency.ToCurrency)
+  .reduce(
+    (
+      unique: { currency: string; sticker: string; adminWallet: string }[],
+      item,
+    ) => {
+      return unique.findIndex((object) => object.currency === item.currency) >=
+        0
+        ? unique
+        : [...unique, item];
+    },
+    [],
+  );
 feature.inlineQuery("📤$", logHandle("inline-query-currency"), async (ctx) => {
   await ctx.answerInlineQuery(
     fromCurrencies.map((currency) => {

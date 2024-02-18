@@ -19,16 +19,16 @@ const composer = new Composer<Context>();
 
 const feature = composer.filter((ctx) => {
   return (
-    Number(ctx.chat?.id) === config.EXCHANGE_RATE_CHANNEL_ID &&
-    !!ctx.channelPost?.reply_to_message?.sticker
+    Number(ctx.chat?.id) === config.EXCHANGE_RATE_GROUP_ID &&
+    !!ctx.message?.reply_to_message?.sticker
   );
 });
 
-feature.on("channel_post", logHandle("add-currency"), async (ctx) => {
-  const adminWallet = ctx.channelPost.text;
+feature.on("message:text", logHandle("add-currency"), async (ctx) => {
+  const adminWallet = ctx.message.text;
   const currencyName =
-    ctx.channelPost.reply_to_message?.reply_markup?.inline_keyboard[0][0].text;
-  const stickerFileId = ctx.channelPost.reply_to_message?.sticker?.file_id;
+    ctx.message.reply_to_message?.reply_markup?.inline_keyboard[0][0].text;
+  const stickerFileId = ctx.message.reply_to_message?.sticker?.file_id;
   if (!stickerFileId || !adminWallet)
     await ctx.reply(
       "only stickers with button of the currency name are accepted or admin wallet is not set in the message body or sticker is not set in the reply message",

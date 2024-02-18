@@ -7,15 +7,15 @@ const composer = new Composer<Context>();
 
 const feature = composer.filter((ctx) => {
   return (
-    Number(ctx.chat?.id) === config.EXCHANGE_RATE_CHANNEL_ID &&
-    !!ctx.channelPost?.text?.startsWith("/add")
+    Number(ctx.chat?.id) === config.EXCHANGE_RATE_GROUP_ID &&
+    !!ctx.message?.text?.startsWith("/add")
   );
 });
 
 const regex =
   /\/add\nfrom:\s*(?<from>.+)\nto:\s*(?<to>.+)\nrate:\s*(?<rate>.+)\nfee:\s*(?<fee>.+)/;
-feature.on("channel_post:text", logHandle("command-channel"), async (ctx) => {
-  const match = ctx.channelPost.text.match(regex);
+feature.on("message:text", logHandle("command-channel"), async (ctx) => {
+  const match = ctx.message.text.match(regex);
   ctx.reply("I got it!");
   if (match?.groups) {
     const { from, to, rate, fee } = match.groups;
