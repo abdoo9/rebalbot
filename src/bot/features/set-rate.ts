@@ -11,7 +11,7 @@ const feature = composer.filter((ctx) => {
 });
 
 const regex =
-  /from:\s*(?<from>.+)\nto:\s*(?<to>.+)\nrate:\s*(?<rate>.+)\nfee:\s*(?<fee>.+)/;
+  /from:\s*(?<from>.+)\nto:\s*(?<to>.+)\nrate:\s*(?<rate>.+)\nfee:\s*(?<fee>.+)\nfeeThreshold:\s*(?<feeThreshold>.+)/;
 feature.on(
   "message:text",
   logHandle("command-EXCHANGE_RATE-group"),
@@ -19,7 +19,7 @@ feature.on(
     const match = ctx.message.text.match(regex);
     ctx.reply("I got it!");
     if (match?.groups) {
-      const { from, to, rate, fee } = match.groups;
+      const { from, to, rate, fee, feeThreshold } = match.groups;
       await ctx.prisma.exchangeRate
         .update({
           where: {
@@ -31,12 +31,21 @@ feature.on(
           data: {
             rate: Number(rate),
             fee: Number(fee),
+            feeThreshold: Number(feeThreshold),
           },
         })
         .then(async () => {
-          ctx.reply(`from: ${from}\nto: ${to}\nrate: ${rate}\nfee: ${fee}`);
+          ctx.reply(
+            `from: ${from}\nto: ${to}\nrate: ${rate}\nfee: ${fee}\nfeeThreshold: ${feeThreshold}`,
+          );
           const newExchange = await ctx.prisma.exchangeRate.findMany({
-            select: { from: true, to: true, rate: true, fee: true },
+            select: {
+              from: true,
+              to: true,
+              rate: true,
+              fee: true,
+              feeThreshold: true,
+            },
           });
           ctx.reply(getTable(newExchange), { parse_mode: "HTML" });
         })

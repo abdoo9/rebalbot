@@ -1,3 +1,4 @@
+/* eslint-disable no-irregular-whitespace */
 import { Composer, InlineKeyboard } from "grammy";
 import type { Context } from "#root/bot/context.js";
 import { logHandle } from "#root/bot/helpers/logging.js";
@@ -113,12 +114,13 @@ feature
           },
         });
         const fromCurrency = request?.fromCurrency ?? "error";
-        const { rate, fee } = (await ctx.prisma.exchangeRate.findFirst({
-          where: {
-            from: fromCurrency,
-            to: toCurrency,
-          },
-        })) as { rate: number; fee: number };
+        const { rate, fee, feeThreshold } =
+          (await ctx.prisma.exchangeRate.findFirst({
+            where: {
+              from: fromCurrency,
+              to: toCurrency,
+            },
+          })) as { rate: number; fee: number; feeThreshold: number };
         await ctx.reply(
           ctx.t("request.text", {
             fromCurrency,
@@ -127,8 +129,8 @@ feature
             transactionId: "not-provided",
             finalAmount: "not-provided",
             userReceivingWallet: "not-provided",
-            rate,
-            fee,
+            rate: `${String(rate)} ​`,
+            fee: `${String(fee)} ​`,
             amount: ctx.t("request.amount-required", { fromCurrency }),
           }),
         );
@@ -139,6 +141,7 @@ feature
           data: {
             toCurrency,
             fee,
+            feeThreshold,
             exchangeRate: rate,
           },
         });
@@ -155,11 +158,18 @@ feature.hears(/\d+/, logHandle("message-amount"), async (ctx, next) => {
 
   if (request?.amount) {
     await next();
-  } else {
-    const fromCurrency = request?.fromCurrency ?? " ";
-    const toCurrency = request?.toCurrency ?? " ";
-    const rate = request?.exchangeRate ?? 0;
-    const fee = request?.fee ?? 0;
+  } else if (
+    request?.feeThreshold &&
+    request?.exchangeRate &&
+    request?.fee &&
+    request?.toCurrency &&
+    request?.fromCurrency
+  ) {
+    const fromCurrency = request?.fromCurrency;
+    const toCurrency = request?.toCurrency;
+    const rate = request?.exchangeRate;
+    const fee = request?.fee;
+    const feeThreshold = request?.feeThreshold;
 
     const userReceivingWallet = ctx.t(
       "request.user-receiving-wallet-required",
@@ -168,18 +178,23 @@ feature.hears(/\d+/, logHandle("message-amount"), async (ctx, next) => {
       },
     );
     const amount = Number(ctx.message.text);
-    const finalAmount = calculateFinalAmountAfterFee(amount, rate, fee);
+    const finalAmount = calculateFinalAmountAfterFee(
+      amount,
+      rate,
+      fee,
+      feeThreshold,
+    );
     await ctx.reply(
       ctx.t("request.text", {
         toCurrency,
         fromCurrency,
-        rate,
-        fee,
-        finalAmount,
+        rate: `${String(rate)} ​`,
+        fee: `${String(fee)} ​`,
+        finalAmount: `${String(finalAmount)} ​`,
+        amount: `${String(amount)} ​`,
         fromWallet: "not-provided",
         userReceivingWallet,
         transactionId: "not-provided",
-        amount,
       }),
     );
     await ctx.prisma.request.update({
@@ -191,6 +206,8 @@ feature.hears(/\d+/, logHandle("message-amount"), async (ctx, next) => {
         finalAmount,
       },
     });
+  } else {
+    ctx.reply(ctx.t("request.invalid-amount"));
   }
 });
 
@@ -217,19 +234,19 @@ feature.hears(
       });
 
       const amount = request?.amount ?? 0;
+      const finalAmount = request?.finalAmount ?? 0;
       const userReceivingWallet = ctx.message.text ?? " ";
-      const finalAmount = calculateFinalAmountAfterFee(amount, rate, fee);
       await ctx.reply(
         ctx.t("request.text", {
           toCurrency,
           fromCurrency,
-          rate,
-          fee,
-          finalAmount,
+          rate: `${String(rate)} ​`,
+          fee: `${String(fee)} ​`,
+          finalAmount: `${String(finalAmount)} ​`,
+          amount: `${String(amount)} ​`,
           fromWallet,
           userReceivingWallet,
           transactionId: "not-provided",
-          amount,
         }),
       );
       await ctx.prisma.request.update({
@@ -279,10 +296,10 @@ feature.hears(
         ctx.t("request.transaction-id-required", {
           toCurrency,
           fromCurrency,
-          amount,
-          rate,
-          fee,
-          finalAmount,
+          rate: `${String(rate)} ​`,
+          fee: `${String(fee)} ​`,
+          finalAmount: `${String(finalAmount)} ​`,
+          amount: `${String(amount)} ​`,
           fromWallet,
           adminWallet,
           userReceivingWallet,
@@ -330,12 +347,12 @@ feature.hears(
         ctx.t("request.photo-required", {
           toCurrency,
           fromCurrency,
-          amount,
           fromWallet,
           transactionId,
-          fee,
-          rate,
-          finalAmount,
+          rate: `${String(rate)} ​`,
+          fee: `${String(fee)} ​`,
+          finalAmount: `${String(finalAmount)} ​`,
+          amount: `${String(amount)} ​`,
           userReceivingWallet,
         }),
       );
@@ -377,11 +394,11 @@ feature.on("message:photo", logHandle("message-photo"), async (ctx, next) => {
       caption: ctx.t("request.text", {
         toCurrency,
         fromCurrency,
-        amount,
         fromWallet,
-        rate,
-        fee,
-        finalAmount,
+        rate: `${String(rate)} ​`,
+        fee: `${String(fee)} ​`,
+        finalAmount: `${String(finalAmount)} ​`,
+        amount: `${String(amount)} ​`,
         userReceivingWallet,
         transactionId,
       }),
@@ -455,12 +472,12 @@ feature.callbackQuery(
               requestId,
               toCurrency,
               fromCurrency,
-              amount,
               fromWallet,
               transactionId,
-              rate,
-              fee,
-              finalAmount,
+              rate: `${String(rate)} ​`,
+              fee: `${String(fee)} ​`,
+              finalAmount: `${String(finalAmount)} ​`,
+              amount: `${String(amount)} ​`,
               userReceivingWallet,
               adminWallet,
             }),
@@ -471,15 +488,27 @@ feature.callbackQuery(
           requestId,
           toCurrency,
           fromCurrency,
-          amount,
+          amount: `${String(amount)} ​`,
           fromWallet,
           transactionId,
-          rate,
-          fee,
-          finalAmount,
+          rate: `${String(rate)} ​`,
+          fee: `${String(fee)} ​`,
+          finalAmount: `${String(finalAmount)} ​`,
           userReceivingWallet,
           adminWallet,
         }),
+        reply_markup: new InlineKeyboard([
+          [
+            {
+              text: ctx.t("request.approve"),
+              callback_data: `approve:${requestId}:${ctx.from?.id}`,
+            },
+            {
+              text: ctx.t("request.reject"),
+              callback_data: `reject:${requestId}:${ctx.from?.id}`,
+            },
+          ],
+        ]),
       });
       await ctx.answerCallbackQuery({
         text: ctx.t("request.submitted"),

@@ -13,12 +13,11 @@ const feature = composer.filter((ctx) => {
 });
 
 const regex =
-  /\/add\nfrom:\s*(?<from>.+)\nto:\s*(?<to>.+)\nrate:\s*(?<rate>.+)\nfee:\s*(?<fee>.+)/;
+  /\/add\nfrom:\s*(?<from>.+)\nto:\s*(?<to>.+)\nrate:\s*(?<rate>.+)\nfee:\s*(?<fee>.+)\nfeeThreshold:\s*(?<feeThreshold>.+)/;
 feature.on("message:text", logHandle("command-channel"), async (ctx) => {
   const match = ctx.message.text.match(regex);
-  ctx.reply("I got it!");
   if (match?.groups) {
-    const { from, to, rate, fee } = match.groups;
+    const { from, to, rate, fee, feeThreshold } = match.groups;
     await ctx.prisma.exchangeRate
       .create({
         data: {
@@ -26,11 +25,12 @@ feature.on("message:text", logHandle("command-channel"), async (ctx) => {
           to,
           rate: Number(rate),
           fee: Number(fee),
+          feeThreshold: Number(feeThreshold),
         },
       })
       .then(() => {
         ctx.reply(
-          `new exchange have been added \n from: ${from}\nto: ${to}\nrate: ${rate}\nfee: ${fee}`,
+          `تم اضافة عملية تحويل جديدة \n from: ${from}\nto: ${to}\nrate: ${rate}\nfee: ${fee}\nfeeThreshold: ${feeThreshold}`,
         );
       })
       .catch((error) => {

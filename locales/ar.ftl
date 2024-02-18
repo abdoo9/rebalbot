@@ -66,7 +66,12 @@ request =
          { request.text }
          محفظة الادمن: <code>{ $adminWallet }</code>
     .already-submited = { request.submited }
-
+    .request-approved = تم الموافقة على الطلب
+        #{ $requestId }
+    .request-rejected = تم رفض الطلب
+        #{ $requestId }
+    .approve = الموافقة
+    .reject = الرفض
 admins-group =
     .submited-request-text = رقم الطلب:<code> { $requestId }</code>
          { request.text }
