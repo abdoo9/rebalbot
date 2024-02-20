@@ -11,7 +11,8 @@ const feature = composer.filter((ctx) => {
   return (
     Number(ctx.chat?.id) === config.ADMINS_CHAT_ID &&
     config.ADMINS_CHAT_RATE_SETTINGS_THREAD_ID ===
-      ctx.message?.message_thread_id
+      ctx.message?.message_thread_id &&
+    !!ctx.message?.text?.match("from:")
   );
 });
 

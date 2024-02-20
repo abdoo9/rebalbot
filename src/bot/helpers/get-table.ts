@@ -1,16 +1,16 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-restricted-syntax */
-/* eslint-disable no-plusplus */
 import { createCanvas } from "canvas";
 import { Readable } from "node:stream";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getTable(data: any[]): Readable {
-  const padding = 10;
-  const rowHeight = 20;
-  const canvas = createCanvas(2000, 2000); // Temporarily create a large canvas
+  const scaleFactor = 2; // Increase this to increase resolution
+  const padding = 10 * scaleFactor;
+  const rowHeight = 20 * scaleFactor;
+  const canvas = createCanvas(2000 * scaleFactor, 2000 * scaleFactor); // Temporarily create a large canvas
   const context = canvas.getContext("2d");
 
-  context.font = "14px Arial";
+  context.font = `${14 * scaleFactor}px Arial`;
   context.textBaseline = "middle";
 
   // Calculate the maximum width of each column
@@ -30,12 +30,13 @@ export function getTable(data: any[]): Readable {
   const finalCanvas = createCanvas(tableWidth, tableHeight);
   const finalContext = finalCanvas.getContext("2d");
 
-  finalContext.font = "14px Arial";
+  finalContext.font = `${14 * scaleFactor}px Arial`;
   finalContext.textBaseline = "middle";
 
   // Draw the table
   let x = 0;
   for (const [index, key] of Object.keys(data[0]).entries()) {
+    // eslint-disable-next-line no-plusplus
     for (let rowIndex = -1; rowIndex < data.length; rowIndex++) {
       const cell = rowIndex === -1 ? key : String(data[rowIndex][key]);
       const y = padding + (rowIndex + 1) * rowHeight;

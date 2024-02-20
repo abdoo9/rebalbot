@@ -33,11 +33,11 @@ request =
             [not-provided] ​
            *[other] العمولة: { $fee }
         }
+        المبلغ الذي ترسله: {$amount}
         { $finalAmount ->
             [not-provided] ​
            *[other]المبلغ الذي تستلمه: <code>{ $finalAmount }</code>
         }
-        المبلغ الذي ترسله: {$amount}
         { $userReceivingWallet ->
             [not-provided] ​
            *[other] المحفظة التي تريد الاستلام عليها: <code>{ $userReceivingWallet }</code>
@@ -57,7 +57,7 @@ request =
     .user-receiving-wallet-required =قم بارسال محفظة ال({$toCurrency}) التي تريد استلام المبلغ عليها
     .photo-required = {request.text}
         <b>يرجى ارسال صورة اثبات التحويل</b>
-    .transaction-id-required = {request.text} <b>قم بالتحويل الى المحفظة التالية</b> <code>{ $adminWallet }</code>
+    .please-send-money-to-admin-wallet = {request.text} <b>قم بالتحويل الى المحفظة التالية</b> <code>{ $adminWallet }</code>
          <b>ثم قم بارسال رقم العملية</b>
     .submit = تاكيد طلب التحويل
     .cancel = الغاء الطلب

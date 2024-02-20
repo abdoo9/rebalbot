@@ -288,13 +288,13 @@ feature.hears(
       const userReceivingWallet = request?.userReceivingWallet ?? " ";
       const databaseCurrency = await ctx.prisma.currency.findFirst({
         where: {
-          currency: toCurrency,
+          currency: fromCurrency,
         },
       });
       const adminWallet = databaseCurrency?.adminWallet ?? " ";
       const fromWallet = ctx.message.text ?? " ";
       await ctx.reply(
-        ctx.t("request.transaction-id-required", {
+        ctx.t("request.please-send-money-to-admin-wallet", {
           toCurrency,
           fromCurrency,
           rate: `${String(rate)} ​`,
@@ -443,7 +443,7 @@ feature.callbackQuery(
     const transactionId = request?.transactionId ?? " ";
     const databaseCurrency = await ctx.prisma.currency.findFirst({
       where: {
-        currency: toCurrency,
+        currency: fromCurrency,
       },
     });
     const adminWallet = databaseCurrency?.adminWallet ?? " ";

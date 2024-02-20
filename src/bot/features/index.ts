@@ -10,3 +10,4 @@ export * from "./delete-exchange.js";
 export * from "./set-currency-image.js";
 export * from "./callback-query.js";
 export * from "./admin-prove-payout.js";
+export * from "./show-table.js";

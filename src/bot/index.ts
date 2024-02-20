@@ -21,6 +21,7 @@ import {
   setCurrencyImageFeature,
   callbackQueryFeature,
   adminProvePayoutFeature,
+  showTableFeature,
 } from "#root/bot/features/index.js";
 import { errorHandler } from "#root/bot/handlers/index.js";
 import { i18n, isMultipleLocales } from "#root/bot/i18n.js";
@@ -76,6 +77,7 @@ export function createBot(token: string, options: Options) {
   protectedBot.use(setRateFeature);
   protectedBot.use(callbackQueryFeature);
   protectedBot.use(adminProvePayoutFeature);
+  protectedBot.use(showTableFeature);
 
   // must be the last handler
   protectedBot.use(unhandledFeature);
