@@ -55,12 +55,19 @@ feature.callbackQuery(/reject:.*/, logHandle("callback-query"), async (ctx) => {
     userId,
     `${ctx.t("request.request-rejected", { requestId })}`,
   );
-  await ctx.api.forwardMessage(
-    chatId,
-    chatId,
-    ctx.callbackQuery.message?.message_id ?? 0,
-    { message_thread_id: config.ADMINS_CHAT_REJECTED_THREAD_ID },
-  );
+  await ctx.api
+    .forwardMessage(
+      chatId,
+      chatId,
+      ctx.callbackQuery.message?.message_id ?? 0,
+      { message_thread_id: config.ADMINS_CHAT_REJECTED_THREAD_ID },
+    )
+    .then(async () => {
+      await ctx.api.deleteMessage(
+        chatId,
+        ctx.callbackQuery.message?.message_id ?? 0,
+      );
+    });
 });
 
 feature.callbackQuery(
@@ -84,12 +91,19 @@ feature.callbackQuery(
       `${ctx.t("request.request-approved", { requestId })}`,
     );
 
-    await ctx.api.forwardMessage(
-      chatId,
-      chatId,
-      ctx.callbackQuery.message?.message_id ?? 0,
-      { message_thread_id: config.ADMINS_CHAT_FINISED_THREAD_ID },
-    );
+    await ctx.api
+      .forwardMessage(
+        chatId,
+        chatId,
+        ctx.callbackQuery.message?.message_id ?? 0,
+        { message_thread_id: config.ADMINS_CHAT_FINISED_THREAD_ID },
+      )
+      .then(async () => {
+        await ctx.api.deleteMessage(
+          chatId,
+          ctx.callbackQuery.message?.message_id ?? 0,
+        );
+      });
   },
 );
 
