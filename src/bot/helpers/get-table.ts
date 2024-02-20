@@ -3,9 +3,10 @@ import path from "node:path";
 import puppeteer from "puppeteer";
 import url from "node:url";
 import fs from "node:fs";
+import { Readable } from "node:stream";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getTable(data: any[]) {
+export async function getTable(data: any[]): Promise<Readable> {
   // Convert the data to an HTML table
   let table = "<table>";
   table +=
@@ -46,16 +47,17 @@ export async function getTable(data: any[]) {
   // Get the table element
   const tableElement = await page.$("table");
 
-  // Take a screenshot of the table element
-  const imagePath = path.join(dirname, `x${Date.now()}table.png`);
   if (tableElement) {
-    await tableElement.screenshot({ path: imagePath });
-  } else {
-    throw new Error("Table element not found");
+    const screenshotBase64 = await tableElement.screenshot({
+      encoding: "base64",
+    });
+    const screenshotBuffer = Buffer.from(screenshotBase64, "base64");
+    const screenshotStream = Readable.from(screenshotBuffer);
+
+    // Close the browser
+    await browser.close();
+
+    return screenshotStream;
   }
-
-  // Close the browser
-  await browser.close();
-
-  return imagePath;
+  throw new Error("Table element not found");
 }
