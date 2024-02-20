@@ -1,13 +1,18 @@
-import { Composer } from "grammy";
+import { Composer, InputFile } from "grammy";
 import type { Context } from "#root/bot/context.js";
 import { logHandle } from "#root/bot/helpers/logging.js";
 import { config } from "#root/config.js";
+import { logger } from "#root/logger.js";
 import { getTable } from "../helpers/get-table.js";
 
 const composer = new Composer<Context>();
 
 const feature = composer.filter((ctx) => {
-  return Number(ctx.chat?.id) === config.EXCHANGE_RATE_GROUP_ID;
+  return (
+    Number(ctx.chat?.id) === config.ADMINS_CHAT_ID &&
+    config.ADMINS_CHAT_RATE_SETTINGS_THREAD_ID ===
+      ctx.message?.message_thread_id
+  );
 });
 
 const regex =
@@ -17,7 +22,6 @@ feature.on(
   logHandle("command-EXCHANGE_RATE-group"),
   async (ctx) => {
     const match = ctx.message.text.match(regex);
-    ctx.reply("I got it!");
     if (match?.groups) {
       const { from, to, rate, fee, feeThreshold } = match.groups;
       await ctx.prisma.exchangeRate
@@ -37,6 +41,9 @@ feature.on(
         .then(async () => {
           ctx.reply(
             `from: ${from}\nto: ${to}\nrate: ${rate}\nfee: ${fee}\nfeeThreshold: ${feeThreshold}`,
+            {
+              message_thread_id: config.ADMINS_CHAT_RATE_SETTINGS_THREAD_ID,
+            },
           );
           const newExchange = await ctx.prisma.exchangeRate.findMany({
             select: {
@@ -47,11 +54,21 @@ feature.on(
               feeThreshold: true,
             },
           });
-          ctx.reply(getTable(newExchange), { parse_mode: "HTML" });
+          const table = new InputFile(await getTable(newExchange));
+          ctx.replyWithPhoto(table, {
+            message_thread_id: config.ADMINS_CHAT_RATE_SETTINGS_THREAD_ID,
+          });
         })
         .catch((error) => {
-          ctx.reply(error.message);
+          logger.error(error);
+          ctx.reply(error.message, {
+            message_thread_id: config.ADMINS_CHAT_RATE_SETTINGS_THREAD_ID,
+          });
         });
+    } else {
+      ctx.reply("invalid format", {
+        message_thread_id: config.ADMINS_CHAT_RATE_SETTINGS_THREAD_ID,
+      });
     }
   },
 );

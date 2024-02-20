@@ -7,8 +7,9 @@ const composer = new Composer<Context>();
 
 const feature = composer.filter((ctx) => {
   return (
-    Number(ctx.chat?.id) === config.EXCHANGE_RATE_GROUP_ID &&
-    !!ctx.message?.text?.startsWith("/add")
+    Number(ctx.chat?.id) === config.ADMINS_CHAT_ID &&
+    !!ctx.message?.text?.startsWith("/add") &&
+    config.ADMINS_CHAT_RATE_SETTINGS_THREAD_ID === ctx.message.message_thread_id
   );
 });
 
@@ -31,10 +32,15 @@ feature.on("message:text", logHandle("command-channel"), async (ctx) => {
       .then(() => {
         ctx.reply(
           `تم اضافة عملية تحويل جديدة \n from: ${from}\nto: ${to}\nrate: ${rate}\nfee: ${fee}\nfeeThreshold: ${feeThreshold}`,
+          {
+            message_thread_id: config.ADMINS_CHAT_RATE_SETTINGS_THREAD_ID,
+          },
         );
       })
       .catch((error) => {
-        ctx.reply(error.message);
+        ctx.reply(error.message, {
+          message_thread_id: config.ADMINS_CHAT_RATE_SETTINGS_THREAD_ID,
+        });
       });
   }
 });

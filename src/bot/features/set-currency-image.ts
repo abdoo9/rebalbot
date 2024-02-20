@@ -1,4 +1,4 @@
-import { Composer } from "grammy";
+import { Composer, InputFile } from "grammy";
 import type { Context } from "#root/bot/context.js";
 import { logHandle } from "#root/bot/helpers/logging.js";
 import { config } from "#root/config.js";
@@ -19,8 +19,9 @@ const composer = new Composer<Context>();
 
 const feature = composer.filter((ctx) => {
   return (
-    Number(ctx.chat?.id) === config.EXCHANGE_RATE_GROUP_ID &&
-    !!ctx.message?.reply_to_message?.sticker
+    Number(ctx.chat?.id) === config.ADMINS_CHAT_ID &&
+    !!ctx.message?.reply_to_message?.sticker &&
+    config.ADMINS_CHAT_RATE_SETTINGS_THREAD_ID === ctx.message.message_thread_id
   );
 });
 
@@ -52,18 +53,35 @@ feature.on("message:text", logHandle("add-currency"), async (ctx) => {
       })
       .then(async (x) => {
         logger.info(x);
-        ctx.reply(`new image for ${currencyName} is set`);
-        const newExchange = await ctx.prisma.exchangeRate.findMany({
-          select: { from: true, to: true, rate: true, fee: true },
+        ctx.reply(`new image for ${currencyName} is set`, {
+          message_thread_id: config.ADMINS_CHAT_RATE_SETTINGS_THREAD_ID,
         });
-        ctx.reply(getTable(newExchange), { parse_mode: "HTML" });
+        const newExchange = await ctx.prisma.exchangeRate.findMany({
+          select: {
+            from: true,
+            to: true,
+            rate: true,
+            fee: true,
+            feeThreshold: true,
+          },
+        });
+        const table = new InputFile(await getTable(newExchange));
+        ctx.replyWithPhoto(table, {
+          message_thread_id: config.ADMINS_CHAT_RATE_SETTINGS_THREAD_ID,
+        });
       })
       .catch((error) => {
-        ctx.reply(error.message);
+        logger.error(error);
+        ctx.reply(error.message, {
+          message_thread_id: config.ADMINS_CHAT_RATE_SETTINGS_THREAD_ID,
+        });
       });
   } else {
     await ctx.reply(
       "only stickers with button of the currency name are accepted",
+      {
+        message_thread_id: config.ADMINS_CHAT_RATE_SETTINGS_THREAD_ID,
+      },
     );
   }
 });

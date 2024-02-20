@@ -26,7 +26,9 @@ const createConfigFromEnvironment = (environment: NodeJS.ProcessEnv) => {
     BOT_ADMINS: z.array(z.number()).default([]),
     ADMINS_CHAT_ID: z.number().negative(),
     LOG_CHANNEL_ID: z.number().negative(),
-    EXCHANGE_RATE_GROUP_ID: z.number().negative(),
+    ADMINS_CHAT_FINISED_THREAD_ID: z.number(),
+    ADMINS_CHAT_REJECTED_THREAD_ID: z.number(),
+    ADMINS_CHAT_RATE_SETTINGS_THREAD_ID: z.number(),
   });
 
   if (config.BOT_MODE === "webhook") {

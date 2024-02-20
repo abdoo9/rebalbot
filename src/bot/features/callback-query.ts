@@ -41,18 +41,25 @@ feature.callbackQuery(
 feature.callbackQuery(/reject:.*/, logHandle("callback-query"), async (ctx) => {
   const requestId = ctx.callbackQuery.data.split(":")[1];
   const userId = ctx.callbackQuery.data.split(":")[2];
+  const chatId = ctx.callbackQuery.message?.chat.id ?? 0;
   await ctx.answerCallbackQuery({
     text: `${ctx.t("request.request-rejected", { requestId })}`,
     show_alert: true,
   });
   await ctx.api.sendMessage(
-    ctx.callbackQuery.message?.chat.id ?? config.EXCHANGE_RATE_GROUP_ID,
+    ctx.callbackQuery.message?.chat.id ?? config.ADMINS_CHAT_ID,
     `${ctx.t("request.request-rejected", { requestId })}`,
   );
 
   await ctx.api.sendMessage(
     userId,
     `${ctx.t("request.request-rejected", { requestId })}`,
+  );
+  await ctx.api.forwardMessage(
+    chatId,
+    chatId,
+    ctx.callbackQuery.message?.message_id ?? 0,
+    { message_thread_id: config.ADMINS_CHAT_REJECTED_THREAD_ID },
   );
 });
 
@@ -62,18 +69,26 @@ feature.callbackQuery(
   async (ctx) => {
     const requestId = ctx.callbackQuery.data.split(":")[1];
     const userId = ctx.callbackQuery.data.split(":")[2];
+    const chatId = ctx.callbackQuery.message?.chat.id ?? 0;
     await ctx.answerCallbackQuery({
       text: `${ctx.t("request.request-approved", { requestId })}`,
       show_alert: true,
     });
     await ctx.api.sendMessage(
-      ctx.callbackQuery.message?.chat.id ?? config.EXCHANGE_RATE_GROUP_ID,
+      ctx.callbackQuery.message?.chat.id ?? config.ADMINS_CHAT_ID,
       `${ctx.t("request.request-approved", { requestId })}`,
     );
 
     await ctx.api.sendMessage(
       userId,
       `${ctx.t("request.request-approved", { requestId })}`,
+    );
+
+    await ctx.api.forwardMessage(
+      chatId,
+      chatId,
+      ctx.callbackQuery.message?.message_id ?? 0,
+      { message_thread_id: config.ADMINS_CHAT_FINISED_THREAD_ID },
     );
   },
 );

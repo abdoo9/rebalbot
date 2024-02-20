@@ -7,8 +7,9 @@ const composer = new Composer<Context>();
 
 const feature = composer.filter((ctx) => {
   return (
-    Number(ctx.chat?.id) === config.EXCHANGE_RATE_GROUP_ID &&
-    !!ctx.message?.text?.startsWith("/delete")
+    Number(ctx.chat?.id) === config.ADMINS_CHAT_ID &&
+    !!ctx.message?.text?.startsWith("/delete") &&
+    config.ADMINS_CHAT_RATE_SETTINGS_THREAD_ID === ctx.message.message_thread_id
   );
 });
 
@@ -28,10 +29,14 @@ feature.on(
           },
         })
         .then(async () => {
-          ctx.reply(`تم حذف التحويل \nfrom: ${from}\nto: ${to}`);
+          ctx.reply(`تم حذف التحويل \nfrom: ${from}\nto: ${to}`, {
+            message_thread_id: config.ADMINS_CHAT_RATE_SETTINGS_THREAD_ID,
+          });
         })
         .catch((error) => {
-          ctx.reply(error.message);
+          ctx.reply(error.message, {
+            message_thread_id: config.ADMINS_CHAT_RATE_SETTINGS_THREAD_ID,
+          });
         });
     }
   },
