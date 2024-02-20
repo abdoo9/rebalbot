@@ -1,63 +1,65 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-restricted-syntax */
-import path from "node:path";
-import puppeteer from "puppeteer";
-import url from "node:url";
-import fs from "node:fs";
+/* eslint-disable no-plusplus */
+import { createCanvas } from "canvas";
 import { Readable } from "node:stream";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getTable(data: any[]): Promise<Readable> {
-  // Convert the data to an HTML table
-  let table = "<table>";
-  table +=
-    "<tr><th>from</th><th>to</th><th>rate</th><th>fee</th><th>feeThreshold</th></tr>";
-  // eslint-disable-next-line no-restricted-syntax
-  for (const row of data) {
-    table += `<tr><td>${row.from}</td><td>${row.to}</td><td>${row.rate}</td><td>${row.fee}</td><td>${row.feeThreshold}</td></tr>`;
-  }
-  table += "</table>";
+export function getTable(data: any[]): Readable {
+  const padding = 10;
+  const rowHeight = 20;
+  const canvas = createCanvas(2000, 2000); // Temporarily create a large canvas
+  const context = canvas.getContext("2d");
 
-  // Get the directory of the current module
-  const dirname = path.dirname(url.fileURLToPath(import.meta.url));
-  // Delete all old images
-  const files = fs.readdirSync(dirname);
-  for (const file of files) {
-    if (file.startsWith("x") && file.endsWith("table.png")) {
-      fs.unlinkSync(path.join(dirname, file));
+  context.font = "14px Arial";
+  context.textBaseline = "middle";
+
+  // Calculate the maximum width of each column
+  const columnWidths = Object.keys(data[0]).map((key, _index) => {
+    const headerWidth = context.measureText(key).width;
+    const cellWidths = data.map(
+      (row) => context.measureText(String(row[key])).width,
+    );
+    return Math.max(headerWidth, ...cellWidths) + 2 * padding;
+  });
+
+  // Calculate the total width and height of the table
+  const tableWidth = columnWidths.reduce((sum, width) => sum + width, 0);
+  const tableHeight = (data.length + 1) * rowHeight + 2 * padding;
+
+  // Create a new canvas with the correct size
+  const finalCanvas = createCanvas(tableWidth, tableHeight);
+  const finalContext = finalCanvas.getContext("2d");
+
+  finalContext.font = "14px Arial";
+  finalContext.textBaseline = "middle";
+
+  // Draw the table
+  let x = 0;
+  for (const [index, key] of Object.keys(data[0]).entries()) {
+    for (let rowIndex = -1; rowIndex < data.length; rowIndex++) {
+      const cell = rowIndex === -1 ? key : String(data[rowIndex][key]);
+      const y = padding + (rowIndex + 1) * rowHeight;
+
+      // Set the fill color for the cell
+      finalContext.fillStyle =
+        rowIndex === -1
+          ? "#ADD8E6"
+          : rowIndex % 2 === 0
+            ? "#FFFFFF"
+            : "#F0F0F0";
+      finalContext.fillRect(x, y, columnWidths[index], rowHeight);
+
+      // Set the stroke color for the cell border
+      finalContext.strokeStyle = "#000000";
+      finalContext.strokeRect(x, y, columnWidths[index], rowHeight);
+
+      // Set the fill color for the text and draw the text
+      finalContext.fillStyle = "#000000";
+      finalContext.fillText(cell, x + padding, y + rowHeight / 2);
     }
+    x += columnWidths[index];
   }
 
-  // Start a puppeteer browser
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-
-  // Set the HTML content of the page
-  const html = `
-    <style>
-      body { margin: 0; padding: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
-      table { border-collapse: collapse; width: auto; height: auto; }
-      th, td { border: 1px solid #ddd; padding: 8px; }
-      tr:nth-child(even) { background-color: #f2f2f2; }
-      th { padding-top: 12px; padding-bottom: 12px; text-align: left; background-color: #4CAF50; color: white; }
-    </style>
-    ${table}
-  `;
-  await page.setContent(html);
-
-  // Get the table element
-  const tableElement = await page.$("table");
-
-  if (tableElement) {
-    const screenshotBase64 = await tableElement.screenshot({
-      encoding: "base64",
-    });
-    const screenshotBuffer = Buffer.from(screenshotBase64, "base64");
-    const screenshotStream = Readable.from(screenshotBuffer);
-
-    // Close the browser
-    await browser.close();
-
-    return screenshotStream;
-  }
-  throw new Error("Table element not found");
+  const stream = finalCanvas.createPNGStream();
+  return Readable.from(stream);
 }
