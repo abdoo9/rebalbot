@@ -24,6 +24,7 @@
     "@grammyjs/hydrate": "1.4.1",
     "@grammyjs/i18n": "1.0.1",
     "@grammyjs/parse-mode": "1.9.0",
+    "@grammyjs/storage-free": "^2.4.1",
     "@grammyjs/storage-prisma": "^2.4.1",
     "@grammyjs/types": "3.4.6",
     "@prisma/client": "5.7.1",

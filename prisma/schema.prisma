@@ -30,7 +30,6 @@ model Request {
   feeThreshold        Float?    @map("fee_threshold")
   finalAmount         Float?    @map("final_amount")
   description         String?
-  fromWallet          String?   @map("from_wallet")
   userReceivingWallet String?   @map("user_receiving_wallet")
   transactionId       String?   @map("transaction_id")
   photoId             String?   @map("photo_id")

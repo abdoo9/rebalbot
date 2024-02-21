@@ -126,7 +126,6 @@ feature
           ctx.t("request.text", {
             fromCurrency,
             toCurrency,
-            fromWallet: "not-provided",
             transactionId: "not-provided",
             finalAmount: "not-provided",
             userReceivingWallet: "not-provided",
@@ -193,7 +192,6 @@ feature.hears(/\d+/, logHandle("message-amount"), async (ctx, next) => {
         fee: `${String(fee)} ​`,
         finalAmount: `${String(finalAmount)} ​`,
         amount: `${String(amount)} ​`,
-        fromWallet: "not-provided",
         userReceivingWallet,
         transactionId: "not-provided",
       }),
@@ -230,22 +228,25 @@ feature.hears(
       const toCurrency = request?.toCurrency ?? " ";
       const rate = request?.exchangeRate ?? 0;
       const fee = request?.fee ?? 0;
-      const fromWallet = ctx.t("request.from-wallet-required", {
-        fromCurrency,
+      const databaseCurrency = await ctx.prisma.currency.findFirst({
+        where: {
+          currency: fromCurrency,
+        },
       });
+      const adminWallet = databaseCurrency?.adminWallet ?? " ";
 
       const amount = request?.amount ?? 0;
       const finalAmount = request?.finalAmount ?? 0;
       const userReceivingWallet = ctx.message.text ?? " ";
       await ctx.reply(
-        ctx.t("request.text", {
+        ctx.t("request.please-send-money-to-admin-wallet", {
           toCurrency,
           fromCurrency,
           rate: `${String(rate)} ​`,
           fee: `${String(fee)} ​`,
           finalAmount: `${String(finalAmount)} ​`,
           amount: `${String(amount)} ​`,
-          fromWallet,
+          adminWallet,
           userReceivingWallet,
           transactionId: "not-provided",
         }),
@@ -264,63 +265,6 @@ feature.hears(
 
 feature.hears(
   /.*/,
-  logHandle("message-text-from-wallet"),
-  async (ctx, next) => {
-    const request = await ctx.prisma.request.findUnique({
-      where: {
-        id: ctx.session.notSubmittedRequestId,
-      },
-    });
-    if (
-      request &&
-      request?.fromCurrency &&
-      request?.amount &&
-      request.toCurrency &&
-      request?.userReceivingWallet &&
-      !request.fromWallet
-    ) {
-      const fromCurrency = request?.fromCurrency ?? " ";
-      const toCurrency = request?.toCurrency ?? " ";
-      const amount = Number(request?.amount ?? 0);
-      const rate = request?.exchangeRate ?? 0;
-      const fee = request?.fee ?? 0;
-      const finalAmount = request?.finalAmount ?? 0;
-      const userReceivingWallet = request?.userReceivingWallet ?? " ";
-      const databaseCurrency = await ctx.prisma.currency.findFirst({
-        where: {
-          currency: fromCurrency,
-        },
-      });
-      const adminWallet = databaseCurrency?.adminWallet ?? " ";
-      const fromWallet = ctx.message.text ?? " ";
-      await ctx.reply(
-        ctx.t("request.please-send-money-to-admin-wallet", {
-          toCurrency,
-          fromCurrency,
-          rate: `${String(rate)} ​`,
-          fee: `${String(fee)} ​`,
-          finalAmount: `${String(finalAmount)} ​`,
-          amount: `${String(amount)} ​`,
-          fromWallet,
-          adminWallet,
-          userReceivingWallet,
-          transactionId: "not-provided",
-        }),
-      );
-      await ctx.prisma.request.update({
-        where: {
-          id: ctx.session.notSubmittedRequestId,
-        },
-        data: {
-          fromWallet,
-        },
-      });
-    } else await next();
-  },
-);
-
-feature.hears(
-  /.*/,
   logHandle("message-text-transaction-id"),
   async (ctx, next) => {
     const request = await ctx.prisma.request.findUnique({
@@ -332,8 +276,7 @@ feature.hears(
       request &&
       request?.fromCurrency &&
       request?.amount &&
-      request.toCurrency &&
-      request.fromWallet
+      request.toCurrency
     ) {
       const fromCurrency = request?.fromCurrency ?? " ";
       const toCurrency = request?.toCurrency ?? " ";
@@ -341,14 +284,12 @@ feature.hears(
       const rate = request?.exchangeRate ?? 0;
       const fee = request?.fee ?? 0;
       const finalAmount = request?.finalAmount ?? 0;
-      const fromWallet = request.fromWallet ?? " ";
       const transactionId = ctx.message.text ?? " ";
       const userReceivingWallet = request?.userReceivingWallet ?? " ";
       await ctx.reply(
         ctx.t("request.photo-required", {
           toCurrency,
           fromCurrency,
-          fromWallet,
           transactionId,
           rate: `${String(rate)} ​`,
           fee: `${String(fee)} ​`,
@@ -375,19 +316,13 @@ feature.on("message:photo", logHandle("message-photo"), async (ctx, next) => {
       id: ctx.session.notSubmittedRequestId,
     },
   });
-  if (
-    request?.fromCurrency &&
-    request?.amount &&
-    request.toCurrency &&
-    request.fromWallet
-  ) {
+  if (request?.fromCurrency && request?.amount && request.toCurrency) {
     const fromCurrency = request?.fromCurrency ?? " ";
     const toCurrency = request?.toCurrency ?? " ";
     const amount = Number(request?.amount ?? 0);
     const rate = request?.exchangeRate ?? 0;
     const fee = request?.fee ?? 0;
     const finalAmount = request?.finalAmount ?? 0;
-    const fromWallet = request.fromWallet ?? " ";
     const transactionId = request.transactionId ?? " ";
     const userReceivingWallet = request?.userReceivingWallet ?? " ";
     const photoId = ctx.message.photo[0].file_id;
@@ -395,7 +330,6 @@ feature.on("message:photo", logHandle("message-photo"), async (ctx, next) => {
       caption: ctx.t("request.text", {
         toCurrency,
         fromCurrency,
-        fromWallet,
         rate: `${String(rate)} ​`,
         fee: `${String(fee)} ​`,
         finalAmount: `${String(finalAmount)} ​`,
@@ -434,7 +368,6 @@ feature.callbackQuery(
     const fromCurrency = request?.fromCurrency ?? " ";
     const toCurrency = request?.toCurrency ?? " ";
     const amount = Number(request?.amount ?? 0);
-    const fromWallet = request?.fromWallet ?? " ";
     const photoId = request?.photoId ?? " ";
     const rate = request?.exchangeRate ?? 0;
     const fee = request?.fee ?? 0;
@@ -473,7 +406,6 @@ feature.callbackQuery(
               requestId,
               toCurrency,
               fromCurrency,
-              fromWallet,
               transactionId,
               rate: `${String(rate)} ​`,
               fee: `${String(fee)} ​`,
@@ -484,6 +416,10 @@ feature.callbackQuery(
             }),
           });
         });
+      const threadId =
+        toCurrency === "zainCash"
+          ? config.ADMINS_CHAT_ZAINCASH_REQUESTS_THREAD_ID
+          : undefined;
       await ctx.api.sendPhoto(config.ADMINS_CHAT_ID, photoId, {
         caption: `<a href="https://t.me/${ctx.from?.id}">📇​</a>${ctx.t(
           ctx.t("admins-group.submited-request-text", {
@@ -496,7 +432,6 @@ feature.callbackQuery(
             toCurrency,
             fromCurrency,
             amount: `${String(amount)} ​`,
-            fromWallet,
             transactionId,
             rate: `${String(rate)} ​`,
             fee: `${String(fee)} ​`,
@@ -517,6 +452,7 @@ feature.callbackQuery(
             },
           ],
         ]),
+        message_thread_id: threadId,
       });
       await ctx.answerCallbackQuery({
         text: ctx.t("request.submitted"),

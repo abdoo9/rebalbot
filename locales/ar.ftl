@@ -42,10 +42,6 @@ request =
             [not-provided] ​
            *[other] المحفظة التي تريد الاستلام عليها: <code>{ $userReceivingWallet }</code>
         }
-        { $fromWallet ->
-            [not-provided] ​
-           *[other] المحفظة التي سيتم التحويل منها: <code>{ $fromWallet }</code>
-        }
         { $transactionId ->
             [not-provided] ​
            *[other]رقم العملية: <code>{ $transactionId }</code>
@@ -53,7 +49,6 @@ request =
     .choose-to-currency = اختر العملة التي تريد استلامها
     .choose-from-currency = اختر العملة التي تريد ارسالها
     .amount-required =<b> قم بارسال مبلغ ال({$fromCurrency}) الذي تريد تحويله</b>
-    .from-wallet-required =<b>قم بارسال معلومات محفظة ال({$fromCurrency}) التي سيتم التحويل منها</b>
     .user-receiving-wallet-required =قم بارسال محفظة ال({$toCurrency}) التي تريد استلام المبلغ عليها
     .photo-required = {request.text}
         <b>يرجى ارسال صورة اثبات التحويل</b>

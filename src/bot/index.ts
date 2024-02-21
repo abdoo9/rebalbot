@@ -2,7 +2,7 @@ import { autoChatAction } from "@grammyjs/auto-chat-action";
 import { hydrate } from "@grammyjs/hydrate";
 import { hydrateReply, parseMode } from "@grammyjs/parse-mode";
 import { BotConfig, StorageAdapter, Bot as TelegramBot, session } from "grammy";
-import { PrismaAdapter } from "@grammyjs/storage-prisma";
+import { freeStorage } from "@grammyjs/storage-free";
 import {
   Context,
   SessionData,
@@ -57,7 +57,7 @@ export function createBot(token: string, options: Options) {
   protectedBot.use(
     session({
       initial: () => ({}),
-      storage: new PrismaAdapter(prisma.session),
+      storage: freeStorage<SessionData>(bot.token),
       getSessionKey: (ctx) => String(ctx.chat?.id ?? ctx.inlineQuery?.from?.id),
     }),
   );

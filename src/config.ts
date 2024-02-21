@@ -29,6 +29,7 @@ const createConfigFromEnvironment = (environment: NodeJS.ProcessEnv) => {
     ADMINS_CHAT_FINISED_THREAD_ID: z.number(),
     ADMINS_CHAT_REJECTED_THREAD_ID: z.number(),
     ADMINS_CHAT_RATE_SETTINGS_THREAD_ID: z.number(),
+    ADMINS_CHAT_ZAINCASH_REQUESTS_THREAD_ID: z.number(),
   });
 
   if (config.BOT_MODE === "webhook") {
