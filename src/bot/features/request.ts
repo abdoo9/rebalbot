@@ -223,7 +223,13 @@ feature.hears(
 
     if (request?.userReceivingWallet) {
       await next();
-    } else {
+    } else if (
+      request?.fromCurrency &&
+      request?.amount &&
+      request.toCurrency &&
+      request?.exchangeRate &&
+      request?.fee
+    ) {
       const fromCurrency = request?.fromCurrency ?? " ";
       const toCurrency = request?.toCurrency ?? " ";
       const rate = request?.exchangeRate ?? 0;
@@ -259,7 +265,7 @@ feature.hears(
           userReceivingWallet,
         },
       });
-    }
+    } else await next();
   },
 );
 
