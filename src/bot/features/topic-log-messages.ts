@@ -1,0 +1,85 @@
+import { Composer } from "grammy";
+import type { Context } from "#root/bot/context.js";
+import { logHandle } from "#root/bot/helpers/logging.js";
+import { config } from "#root/config.js";
+import { getRandomTopicColor } from "../helpers/get-random-topic-color.js";
+import { startsWithNumberAndDash } from "../helpers/string-start-with-number-and-dash.js";
+
+const composer = new Composer<Context>();
+
+const feature = composer;
+
+feature
+  .chatType("private")
+  .on(
+    [
+      "message:text",
+      "message:sticker",
+      "message:photo",
+      "message:video",
+      "message:voice",
+      "message:audio",
+      "message:document",
+      "message:animation",
+      "message:video_note",
+      "message:contact",
+    ],
+    logHandle("log message to topic"),
+    async (ctx, next) => {
+      if (ctx.session.logTopicThreadId) {
+        await ctx.forwardMessage(config.LOG_GROUP_ID, {
+          message_thread_id: ctx.session.logTopicThreadId,
+        });
+        next();
+      } else {
+        const newTopic = await ctx.api.createForumTopic(
+          config.LOG_GROUP_ID,
+          `${ctx.from?.id}-${ctx.from?.first_name} ${ctx.from?.last_name}`.slice(
+            0,
+            128,
+          ),
+          {
+            icon_color: getRandomTopicColor(),
+          },
+        );
+        ctx.session.logTopicThreadId = newTopic.message_thread_id;
+        await ctx.forwardMessage(config.LOG_GROUP_ID, {
+          message_thread_id: ctx.session.logTopicThreadId,
+        });
+        next();
+      }
+    },
+  );
+
+feature
+
+  .filter(
+    (ctx) =>
+      ctx.message?.chat.id === config.LOG_GROUP_ID &&
+      startsWithNumberAndDash(
+        ctx.message?.reply_to_message?.forum_topic_created?.name,
+      ),
+  )
+  .on(
+    [
+      "message:text",
+      "message:sticker",
+      "message:photo",
+      "message:video",
+      "message:voice",
+      "message:audio",
+      "message:document",
+      "message:animation",
+      "message:video_note",
+      "message:contact",
+    ],
+    logHandle("reply to log message to topic"),
+    async (ctx, next) => {
+      const userId =
+        ctx.message?.reply_to_message?.forum_topic_created?.name.split("-")[0];
+      if (!userId) return next();
+      ctx.copyMessage(userId);
+    },
+  );
+
+export { composer as topicLogMessagesFeature };

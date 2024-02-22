@@ -19,24 +19,26 @@ model User {
 }
 
 model Request {
-  id                  String    @id @unique @default(uuid())
-  userId              Int       @map("user_id")
-  messageId           Int       @map("message_id")
-  fromCurrency        String?   @map("from_currency")
-  toCurrency          String?   @map("to_currency")
-  submittedAt         DateTime? @map("submitted_at")
-  amount              Float?
-  fee                 Float?
-  feeThreshold        Float?    @map("fee_threshold")
-  finalAmount         Float?    @map("final_amount")
-  description         String?
-  userReceivingWallet String?   @map("user_receiving_wallet")
-  transactionId       String?   @map("transaction_id")
-  photoId             String?   @map("photo_id")
-  exchangeRate        Float     @map("exchange_rate")
-  updatedAt           DateTime  @updatedAt @map("updated_at")
-  createdAt           DateTime  @default(now()) @map("created_at")
-  User                User      @relation(fields: [userId], references: [id])
+  id                    String    @id @unique @default(uuid())
+  userId                Int       @map("user_id")
+  messageId             Int       @map("message_id")
+  fromCurrency          String?   @map("from_currency")
+  toCurrency            String?   @map("to_currency")
+  submittedAt           DateTime? @map("submitted_at")
+  amount                Float?
+  fee                   Float?
+  feeThreshold          Float?    @map("fee_threshold")
+  finalAmount           Float?    @map("final_amount")
+  description           String?
+  userReceivingWallet   String?   @map("user_receiving_wallet")
+  transactionId         String?   @map("transaction_id")
+  photoId               String?   @map("photo_id")
+  adminConfirmedReceipt Boolean?  @map("admin_confirmed_receipt")
+  adminPaidAmount       Float?    @map("admin_paid_amount")
+  exchangeRate          Float     @map("exchange_rate")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  User                  User      @relation(fields: [userId], references: [id])
 
   @@map(name: "requests")
 }
@@ -65,10 +67,4 @@ model Currency {
   ToCurrencyExchangeRates   ExchangeRate[] @relation("ToCurrencyExchangeRates")
 
   @@map("currencies")
-}
-
-model Session {
-  id    Int    @id @default(autoincrement())
-  key   String @unique
-  value String
 }

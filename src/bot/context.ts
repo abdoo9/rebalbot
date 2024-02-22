@@ -9,6 +9,7 @@ import type { PrismaClientX } from "#root/prisma/index.js";
 
 export type SessionData = {
   notSubmittedRequestId?: string;
+  logTopicThreadId?: number;
 };
 
 type ExtendedContextFlavor = {
