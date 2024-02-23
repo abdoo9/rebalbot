@@ -77,3 +77,4 @@ admins-group =
          اسم العميل: <a href="tg://user?id={ $userId }">{ $name }</a>
          { request.text }
          محفظة الادمن: <code>{ $adminWallet }</code>
+         رابط الدردشة: { $topicLink}

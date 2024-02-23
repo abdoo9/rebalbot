@@ -39,10 +39,9 @@ feature
       } else {
         const newTopic = await ctx.api.createForumTopic(
           config.LOG_GROUP_ID,
-          `${ctx.from?.id}-${ctx.from?.first_name} ${ctx.from?.last_name}`.slice(
-            0,
-            128,
-          ),
+          `${ctx.from?.id}-${ctx.from?.first_name} ${
+            ctx.from?.last_name ?? " "
+          }`.slice(0, 128),
           {
             icon_color: getRandomTopicColor(),
           },

@@ -8,6 +8,7 @@ import { prisma } from "#root/prisma/index.js";
 import { i18n } from "../i18n.js";
 import { calculateFinalAmountAfterFee } from "../helpers/calculate-final-amount-after-fee.js";
 import { escapeHTML } from "../helpers/escape-html.js";
+import { getTopicLink } from "../helpers/get-topic-link.js";
 
 const composer = new Composer<Context>();
 
@@ -453,6 +454,7 @@ feature.callbackQuery(
             finalAmount: `${String(finalAmount)} ​`,
             userReceivingWallet,
             adminWallet,
+            topicLink: getTopicLink(ctx.session.logTopicThreadId),
           }),
         )}`,
         reply_markup: new InlineKeyboard([
