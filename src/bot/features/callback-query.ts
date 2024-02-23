@@ -38,6 +38,21 @@ feature.callbackQuery(
   },
 );
 
+feature.callbackQuery(
+  /adminConfirmedReceipt:.*/,
+  logHandle("callback-query-admin-confirmed-receipt"),
+  async (ctx) => {
+    await ctx.answerCallbackQuery({
+      text: ctx.t("admin.receipt-confirmed"),
+      show_alert: true,
+    });
+    const replyMarkup = ctx.callbackQuery.message?.reply_markup;
+    replyMarkup?.inline_keyboard[0].pop();
+    await ctx.editMessageReplyMarkup({
+      reply_markup: replyMarkup,
+    });
+  },
+);
 feature.callbackQuery(/reject:.*/, logHandle("callback-query"), async (ctx) => {
   const requestId = ctx.callbackQuery.data.split(":")[1];
   const userId = ctx.callbackQuery.data.split(":")[2];

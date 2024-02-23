@@ -8,8 +8,8 @@ import type { Logger } from "#root/logger.js";
 import type { PrismaClientX } from "#root/prisma/index.js";
 
 export type SessionData = {
-  notSubmittedRequestId?: string;
-  logTopicThreadId?: number;
+  notSubmittedRequestId: number;
+  logTopicThreadId: number;
 };
 
 type ExtendedContextFlavor = {

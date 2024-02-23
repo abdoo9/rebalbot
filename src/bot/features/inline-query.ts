@@ -25,20 +25,41 @@ const fromCurrencies = currencies
     [],
   );
 
-const toCurrencies = currencies
-  .map((currency) => currency.ToCurrency)
-  .reduce(
-    (
-      unique: { currency: string; sticker: string; adminWallet: string }[],
-      item,
-    ) => {
-      return unique.findIndex((object) => object.currency === item.currency) >=
-        0
-        ? unique
-        : [...unique, item];
-    },
-    [],
-  );
+// const toCurrencies = currencies
+//   .map((currency) => currency.ToCurrency)
+//   .reduce(
+//     (
+//       unique: { currency: string; sticker: string; adminWallet: string }[],
+//       item,
+//     ) => {
+//       return unique.findIndex((object) => object.currency === item.currency) >=
+//         0
+//         ? unique
+//         : [...unique, item];
+//     },
+//     [],
+//   );
+
+function getToCurrencies(fromCurrency: string) {
+  const toCurrencies = currencies
+    .filter((currency) => currency.FromCurrency.currency === fromCurrency)
+    .map((currency) => currency.ToCurrency)
+    .reduce(
+      (
+        unique: { currency: string; sticker: string; adminWallet: string }[],
+        item,
+      ) => {
+        return unique.findIndex(
+          (object) => object.currency === item.currency,
+        ) >= 0
+          ? unique
+          : [...unique, item];
+      },
+      [],
+    );
+
+  return toCurrencies;
+}
 feature.inlineQuery("📤$", logHandle("inline-query-currency"), async (ctx) => {
   await ctx.answerInlineQuery(
     fromCurrencies.map((currency) => {
@@ -63,29 +84,35 @@ feature.inlineQuery("📤$", logHandle("inline-query-currency"), async (ctx) => 
     { cache_time: 0 },
   );
 });
-feature.inlineQuery("📥$", logHandle("inline-query-currency"), async (ctx) => {
-  await ctx.answerInlineQuery(
-    toCurrencies.map((currency) => {
-      return {
-        type: "sticker",
-        sticker_file_id: currency.sticker,
-        id: currency.currency,
-        title: currency.currency,
-        description: ctx.t("currency.the-currency-you-want-to-receive"),
-        reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: `${ctx.t("currency.to")} ${currency.currency}`,
-                callback_data:
-                  "alert_send_the_ammount_of_money_you_want_to_receive",
-              },
+feature.inlineQuery(
+  /📥\$:(.+)/,
+  logHandle("inline-query-currency"),
+  async (ctx) => {
+    const fromCurrency = ctx.match?.[1] ?? undefined;
+    if (!fromCurrency) return;
+    await ctx.answerInlineQuery(
+      getToCurrencies(fromCurrency).map((currency) => {
+        return {
+          type: "sticker",
+          sticker_file_id: currency.sticker,
+          id: currency.currency,
+          title: currency.currency,
+          description: ctx.t("currency.the-currency-you-want-to-receive"),
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: `${ctx.t("currency.to")} ${currency.currency}`,
+                  callback_data:
+                    "alert_send_the_ammount_of_money_you_want_to_receive",
+                },
+              ],
             ],
-          ],
-        },
-      };
-    }),
-    { cache_time: 0 },
-  );
-});
+          },
+        };
+      }),
+      { cache_time: 0 },
+    );
+  },
+);
 export { composer as inlineQueryFeature };

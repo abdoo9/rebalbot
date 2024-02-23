@@ -1,9 +1,14 @@
 import { autoChatAction } from "@grammyjs/auto-chat-action";
 import { hydrate } from "@grammyjs/hydrate";
 import { hydrateReply, parseMode } from "@grammyjs/parse-mode";
-import { BotConfig, StorageAdapter, Bot as TelegramBot, session } from "grammy";
+import {
+  BotConfig,
+  MemorySessionStorage,
+  StorageAdapter,
+  Bot as TelegramBot,
+  session,
+} from "grammy";
 
-import { freeStorage } from "@grammyjs/storage-free";
 import {
   Context,
   SessionData,
@@ -59,11 +64,12 @@ export function createBot(token: string, options: Options) {
   protectedBot.use(hydrate());
   protectedBot.use(
     session({
-      initial: () => ({}),
-      storage: freeStorage<SessionData>(bot.token),
+      initial: () => ({ notSubmittedRequestId: 0, logTopicThreadId: 0 }),
+      storage: new MemorySessionStorage(),
       getSessionKey: (ctx) => String(ctx.chat?.id ?? ctx.inlineQuery?.from?.id),
     }),
   );
+
   protectedBot.use(i18n);
   protectedBot.use(autoThread());
 
@@ -71,9 +77,9 @@ export function createBot(token: string, options: Options) {
   if (isMultipleLocales) {
     protectedBot.use(languageFeature);
   }
+  protectedBot.use(topicLogMessagesFeature);
   protectedBot.use(welcomeFeature);
   protectedBot.use(showTableFeature);
-  protectedBot.use(topicLogMessagesFeature);
   protectedBot.use(adminFeature);
   protectedBot.use(inlineQueryFeature);
   protectedBot.use(requestFeature);

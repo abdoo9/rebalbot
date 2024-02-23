@@ -27,9 +27,14 @@ feature
     logHandle("log message to topic"),
     async (ctx, next) => {
       if (ctx.session.logTopicThreadId) {
-        await ctx.forwardMessage(config.LOG_GROUP_ID, {
-          message_thread_id: ctx.session.logTopicThreadId,
-        });
+        await ctx.api.forwardMessage(
+          config.LOG_GROUP_ID,
+          ctx.chat.id,
+          ctx.message.message_id,
+          {
+            message_thread_id: ctx.session.logTopicThreadId,
+          },
+        );
         next();
       } else {
         const newTopic = await ctx.api.createForumTopic(
@@ -43,9 +48,14 @@ feature
           },
         );
         ctx.session.logTopicThreadId = newTopic.message_thread_id;
-        await ctx.forwardMessage(config.LOG_GROUP_ID, {
-          message_thread_id: ctx.session.logTopicThreadId,
-        });
+        await ctx.api.forwardMessage(
+          config.LOG_GROUP_ID,
+          ctx.chat.id,
+          ctx.message.message_id,
+          {
+            message_thread_id: ctx.session.logTopicThreadId,
+          },
+        );
         next();
       }
     },
@@ -81,5 +91,18 @@ feature
       ctx.copyMessage(userId);
     },
   );
+
+feature
+  .filter(
+    (ctx) =>
+      ctx.message?.chat.id === config.LOG_GROUP_ID &&
+      !!ctx.message.reply_to_message &&
+      !ctx.message.reply_to_message?.forum_topic_created,
+  )
+  .on("message", logHandle("reply to log message in topic"), async (ctx) => {
+    ctx.reply(
+      "لا تقم بالرد على هذه الرسالة هنا يرجى ارسال الرسالة بدون رد ليتم توصيلها الى العميل",
+    );
+  });
 
 export { composer as topicLogMessagesFeature };

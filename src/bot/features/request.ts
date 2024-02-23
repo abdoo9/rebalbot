@@ -7,7 +7,6 @@ import { config } from "#root/config.js";
 import { prisma } from "#root/prisma/index.js";
 import { i18n } from "../i18n.js";
 import { calculateFinalAmountAfterFee } from "../helpers/calculate-final-amount-after-fee.js";
-import { generateShortId } from "../helpers/get-short-id.js";
 import { escapeHTML } from "../helpers/escape-html.js";
 
 const composer = new Composer<Context>();
@@ -66,17 +65,15 @@ feature
         logger.info(
           `deleted ${deletedCount} requests from database this shouldn't happen too often`,
         );
-        ctx.session.notSubmittedRequestId = undefined;
 
         const requestMessage = await ctx.reply(`you picked ${fromCurrency}`, {
           reply_markup: new InlineKeyboard().switchInlineCurrent(
             ctx.t("request.choose-to-currency"),
-            "📥$",
+            `📥$:${fromCurrency}`,
           ),
         });
         const request = await ctx.prisma.request.create({
           data: {
-            id: generateShortId(),
             User: {
               connect: {
                 telegramId: ctx.from?.id,
@@ -88,6 +85,7 @@ feature
           },
         });
         ctx.session.notSubmittedRequestId = request.id;
+        logger.info(`session requestId: ${JSON.stringify(ctx.session)}`);
       } else {
         await ctx.reply(ctx.t("request.invalid-sticker"));
       }
@@ -104,16 +102,27 @@ feature
   .on(
     "message:sticker",
     logHandle("message-sticker-tocurrency"),
-    async (ctx) => {
+    async (ctx, next) => {
+      logger.info(`message-sticker-tocurrency: ${JSON.stringify(ctx.session)}`);
       const toCurrency = ctx.message.reply_markup?.inline_keyboard[0][0].text
         .split(":")[1]
         .trim();
       if (toCurrency && toCurrencies.includes(toCurrency)) {
-        const request = await ctx.prisma.request.findUnique({
-          where: {
-            id: ctx.session.notSubmittedRequestId,
-          },
-        });
+        logger.info(`befor const request =: ${JSON.stringify(ctx.session)}`);
+        const request = await ctx.prisma.request
+          .findUnique({
+            where: {
+              id: ctx.session.notSubmittedRequestId,
+            },
+          })
+          .catch(async (error) => {
+            logger.error(error);
+            await ctx.reply(ctx.t("request.error"));
+          });
+        if (!request) {
+          await ctx.reply(ctx.t("request.error"));
+          await next();
+        }
         const fromCurrency = request?.fromCurrency ?? "error";
         const { rate, fee, feeThreshold } =
           (await ctx.prisma.exchangeRate.findFirst({
@@ -368,7 +377,7 @@ feature.callbackQuery(
     const requestId = ctx.callbackQuery.data.split(":")[1];
     const request = await ctx.prisma.request.findUnique({
       where: {
-        id: requestId,
+        id: Number(requestId),
       },
     });
     const fromCurrency = request?.fromCurrency ?? " ";
@@ -395,7 +404,7 @@ feature.callbackQuery(
       await ctx.prisma.request
         .update({
           where: {
-            id: requestId,
+            id: Number(requestId),
           },
           data: {
             submittedAt: new Date(),
@@ -449,6 +458,12 @@ feature.callbackQuery(
         reply_markup: new InlineKeyboard([
           [
             {
+              text: ctx.t("request.admin-confirm-receipt"),
+              callback_data: `adminConfirmedReceipt:${requestId}:${ctx.from?.id}`,
+            },
+          ],
+          [
+            {
               text: ctx.t("request.approve"),
               callback_data: `approve:${requestId}:${ctx.from?.id}`,
             },
@@ -484,7 +499,7 @@ feature.command("cancel", logHandle("command"), async (ctx) => {
         id: requestId,
       },
     });
-    ctx.session.notSubmittedRequestId = undefined;
+    ctx.session.notSubmittedRequestId = 0;
   }
   await ctx.reply(ctx.t("request.cancelled"));
   await ctx.deleteMessage();
@@ -498,7 +513,7 @@ feature.callbackQuery("cancel", logHandle("callback-query"), async (ctx) => {
         id: requestId,
       },
     });
-    ctx.session.notSubmittedRequestId = undefined;
+    ctx.session.notSubmittedRequestId = 0;
   }
   await ctx.answerCallbackQuery({
     text: ctx.t("request.cancelled"),

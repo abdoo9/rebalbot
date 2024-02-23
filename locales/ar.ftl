@@ -68,6 +68,8 @@ request =
         #{ $requestId }
     .approve = الموافقة
     .reject = الرفض
+    .error = حدث خطأ  /start
+    .admin-confirm-receipt = تم تأكيد الاستلام
 admins-group =
     .submited-request-text = رقم الطلب:<code> { $requestId }</code>
          معرف العميل: @{ $username }
