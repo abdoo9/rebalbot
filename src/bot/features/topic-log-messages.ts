@@ -3,7 +3,7 @@ import type { Context } from "#root/bot/context.js";
 import { logHandle } from "#root/bot/helpers/logging.js";
 import { config } from "#root/config.js";
 import { getRandomTopicColor } from "../helpers/get-random-topic-color.js";
-import { startsWithNumberAndDash } from "../helpers/string-start-with-number-and-dash.js";
+import { endsWithDashAndNumber } from "../helpers/string-ends-with-dash-and-number.js";
 
 const composer = new Composer<Context>();
 
@@ -39,9 +39,10 @@ feature
       } else {
         const newTopic = await ctx.api.createForumTopic(
           config.LOG_GROUP_ID,
-          `${ctx.from?.id}-${ctx.from?.first_name} ${
-            ctx.from?.last_name ?? " "
-          }`.slice(0, 128),
+          `${(`${ctx.from?.first_name} ${ctx.from?.last_name}` ?? " ").slice(
+            0,
+            120 - (ctx.from?.id?.toString() ?? "").length,
+          )}-${ctx.from?.id}`,
           {
             icon_color: getRandomTopicColor(),
           },
@@ -65,7 +66,7 @@ feature
   .filter(
     (ctx) =>
       ctx.message?.chat.id === config.LOG_GROUP_ID &&
-      startsWithNumberAndDash(
+      endsWithDashAndNumber(
         ctx.message?.reply_to_message?.forum_topic_created?.name,
       ),
   )
@@ -84,8 +85,9 @@ feature
     ],
     logHandle("reply to log message to topic"),
     async (ctx, next) => {
-      const userId =
-        ctx.message?.reply_to_message?.forum_topic_created?.name.split("-")[0];
+      const userId = ctx.message?.reply_to_message?.forum_topic_created?.name
+        .split("-")
+        .at(-1);
       if (!userId) return next();
       ctx.copyMessage(userId);
     },
