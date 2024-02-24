@@ -52,7 +52,7 @@ feature.callbackQuery(
     replyMarkup?.inline_keyboard[0].pop();
     replyMarkup?.inline_keyboard.push([
       {
-        text: ctx.t("admin.approve"),
+        text: ctx.t("request.approve"),
         callback_data: `approve:${ctx.callbackQuery.data.split(":")[1]}:${
           ctx.callbackQuery.data.split(":")[2]
         }`,

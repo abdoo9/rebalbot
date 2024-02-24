@@ -56,17 +56,17 @@ feature.on("message:text", logHandle("add-currency"), async (ctx) => {
         ctx.reply(`new image for ${currencyName} is set`, {
           message_thread_id: config.ADMINS_CHAT_RATE_SETTINGS_THREAD_ID,
         });
-        const newExchange = await ctx.prisma.exchangeRate.findMany({
+        const currencies = await ctx.prisma.currency.findMany({
           select: {
-            from: true,
-            to: true,
-            rate: true,
-            fee: true,
-            feeThreshold: true,
+            currency: true,
+            adminWallet: true,
+          },
+          orderBy: {
+            currency: "asc",
           },
         });
-        const table = new InputFile(await getTable(newExchange));
-        ctx.replyWithPhoto(table, {
+        const tableCurrencies = new InputFile(await getTable(currencies));
+        ctx.replyWithPhoto(tableCurrencies, {
           message_thread_id: config.ADMINS_CHAT_RATE_SETTINGS_THREAD_ID,
         });
       })
