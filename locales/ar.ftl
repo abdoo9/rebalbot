@@ -6,7 +6,7 @@ setcommands_command =
     .description = Set bot commands
 
 welcome = 
-    .text = هلا بك في بوت ريبال لتحويل العملات الرجاء اختيار العملة التي تريد التحويل منها
+    .text = هلا بك في بوت Rebal.online ريبال لتحويل العملات الرجاء اختيار العملة التي تريد التحويل منها
     /rate - اضغط هنا للحصول على سعر الصرف
     .choose-currency = اختر العملة
     .add-contact = يرجى اضافة معلومات الاتصال الخاصة بك للاستمرار
@@ -34,14 +34,14 @@ request =
             [not-provided] ​
            *[other] العمولة: { $fee }
         }
-        المبلغ الذي ترسله: {$amount}
+        المبلغ المرسل: {$amount}
         { $finalAmount ->
             [not-provided] ​
-           *[other]المبلغ الذي تستلمه: <code>{ $finalAmount }</code>
+           *[other] المبلغ المستلم: <code>{ $finalAmount }</code>
         }
         { $userReceivingWallet ->
             [not-provided] ​
-           *[other] المحفظة التي تريد الاستلام عليها: <code>{ $userReceivingWallet }</code>
+           *[other]محفظة الاستلام الخاصة بك: <code>{ $userReceivingWallet }</code>
         }
         { $transactionId ->
             [not-provided] ​
@@ -54,8 +54,8 @@ request =
     .photo-required = {request.text}
         <b>يرجى ارسال صورة اثبات التحويل</b>
     .please-send-money-to-admin-wallet = {request.text} <b>قم بالتحويل الى المحفظة التالية</b> <code>{ $adminWallet }</code>
-         <b>ثم قم بارسال رقم العملية</b>
-    .submit = تاكيد طلب التحويل
+         <b>ثم قم بارسال رقم العملية او باش او txid</b>
+    .submit = تاكيد الدفع
     .cancel = الغاء الطلب
     .submited = تم رفع طلبك بنجاح يرجى انتظار لبضع دقائق لمراجعة الطلب الخاص بكم
     .submited-request-text = رقم الطلب:<code> { $requestId }</code>

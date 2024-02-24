@@ -54,6 +54,9 @@ feature
         currency: true,
         adminWallet: true,
       },
+      orderBy: {
+        currency: "asc",
+      },
     });
     const tableCurrencies = new InputFile(await getTable(currencies));
     ctx.replyWithPhoto(tableCurrencies, {

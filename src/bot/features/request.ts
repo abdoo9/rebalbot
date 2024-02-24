@@ -432,10 +432,6 @@ feature.callbackQuery(
             }),
           });
         });
-      const threadId =
-        toCurrency === "zainCash"
-          ? config.ADMINS_CHAT_ZAINCASH_REQUESTS_THREAD_ID
-          : undefined;
       await ctx.api.sendPhoto(config.ADMINS_CHAT_ID, photoId, {
         caption: `<a href="https://t.me/${ctx.from?.id}">📇​</a>${ctx.t(
           ctx.t("admins-group.submited-request-text", {
@@ -466,16 +462,11 @@ feature.callbackQuery(
           ],
           [
             {
-              text: ctx.t("request.approve"),
-              callback_data: `approve:${requestId}:${ctx.from?.id}`,
-            },
-            {
               text: ctx.t("request.reject"),
               callback_data: `reject:${requestId}:${ctx.from?.id}`,
             },
           ],
         ]),
-        message_thread_id: threadId,
       });
       await ctx.answerCallbackQuery({
         text: ctx.t("request.submitted"),

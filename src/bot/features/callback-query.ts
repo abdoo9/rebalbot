@@ -42,14 +42,39 @@ feature.callbackQuery(
   /adminConfirmedReceipt:.*/,
   logHandle("callback-query-admin-confirmed-receipt"),
   async (ctx) => {
+    const isZainCash =
+      ctx.callbackQuery.message?.caption?.includes("الى عملة: zainCash");
     await ctx.answerCallbackQuery({
       text: ctx.t("admin.receipt-confirmed"),
       show_alert: true,
     });
     const replyMarkup = ctx.callbackQuery.message?.reply_markup;
     replyMarkup?.inline_keyboard[0].pop();
+    replyMarkup?.inline_keyboard.push([
+      {
+        text: ctx.t("admin.approve"),
+        callback_data: `approve:${ctx.callbackQuery.data.split(":")[1]}:${
+          ctx.callbackQuery.data.split(":")[2]
+        }`,
+      },
+    ]);
     await ctx.editMessageReplyMarkup({
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: `تم بواسطة ${ctx.from.first_name}`.slice(0, 64),
+              url: `tg://user?id=${ctx.from.id}`,
+            },
+          ],
+        ],
+      },
+    });
+    await ctx.copyMessage(config.ADMINS_CHAT_ID, {
       reply_markup: replyMarkup,
+      message_thread_id: isZainCash
+        ? config.ADMINS_CHAT_ZAINCASH_REQUESTS_THREAD_ID
+        : config.ADMINS_CHAT_PROCESSING_THREAD_ID,
     });
   },
 );

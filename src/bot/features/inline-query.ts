@@ -7,41 +7,32 @@ import { prisma } from "#root/prisma/index.js";
 const composer = new Composer<Context>();
 const feature = composer;
 
-const currencies = await prisma.exchangeRate.findMany({
-  include: { FromCurrency: true, ToCurrency: true },
-});
-const fromCurrencies = currencies
-  .map((currency) => currency.FromCurrency)
-  .reduce(
-    (
-      unique: { currency: string; sticker: string; adminWallet: string }[],
-      item,
-    ) => {
-      return unique.findIndex((object) => object.currency === item.currency) >=
-        0
-        ? unique
-        : [...unique, item];
-    },
-    [],
-  );
+async function getFromCurrencies() {
+  const currencies = await prisma.exchangeRate.findMany({
+    include: { FromCurrency: true, ToCurrency: true },
+  });
+  return currencies
+    .map((currency) => currency.FromCurrency)
+    .reduce(
+      (
+        unique: { currency: string; sticker: string; adminWallet: string }[],
+        item,
+      ) => {
+        return unique.findIndex(
+          (object) => object.currency === item.currency,
+        ) >= 0
+          ? unique
+          : [...unique, item];
+      },
+      [],
+    );
+}
 
-// const toCurrencies = currencies
-//   .map((currency) => currency.ToCurrency)
-//   .reduce(
-//     (
-//       unique: { currency: string; sticker: string; adminWallet: string }[],
-//       item,
-//     ) => {
-//       return unique.findIndex((object) => object.currency === item.currency) >=
-//         0
-//         ? unique
-//         : [...unique, item];
-//     },
-//     [],
-//   );
-
-function getToCurrencies(fromCurrency: string) {
-  const toCurrencies = currencies
+async function getToCurrencies(fromCurrency: string) {
+  const currencies = await prisma.exchangeRate.findMany({
+    include: { FromCurrency: true, ToCurrency: true },
+  });
+  return currencies
     .filter((currency) => currency.FromCurrency.currency === fromCurrency)
     .map((currency) => currency.ToCurrency)
     .reduce(
@@ -57,10 +48,10 @@ function getToCurrencies(fromCurrency: string) {
       },
       [],
     );
-
-  return toCurrencies;
 }
+
 feature.inlineQuery("📤$", logHandle("inline-query-currency"), async (ctx) => {
+  const fromCurrencies = await getFromCurrencies();
   await ctx.answerInlineQuery(
     fromCurrencies.map((currency) => {
       return {
@@ -90,8 +81,9 @@ feature.inlineQuery(
   async (ctx) => {
     const fromCurrency = ctx.match?.[1] ?? undefined;
     if (!fromCurrency) return;
+    const toCurrencies = await getToCurrencies(fromCurrency);
     await ctx.answerInlineQuery(
-      getToCurrencies(fromCurrency).map((currency) => {
+      toCurrencies.map((currency) => {
         return {
           type: "sticker",
           sticker_file_id: currency.sticker,

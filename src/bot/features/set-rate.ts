@@ -54,6 +54,9 @@ feature.on(
               fee: true,
               feeThreshold: true,
             },
+            orderBy: {
+              from: "asc",
+            },
           });
           const table = new InputFile(await getTable(newExchange));
           ctx.replyWithPhoto(table, {
