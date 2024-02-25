@@ -12,3 +12,4 @@ export * from "./callback-query.js";
 export * from "./admin-prove-payout.js";
 export * from "./show-table.js";
 export * from "./topic-log-messages.js";
+export * from "./partial-payment.js";

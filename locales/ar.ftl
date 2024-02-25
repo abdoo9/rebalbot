@@ -71,7 +71,7 @@ request =
     .error = حدث خطأ  /start
     .admin-confirm-receipt = تم تأكيد الاستلام
 admins-group =
-    .submited-request-text = رقم الطلب:<code> { $requestId }</code>
+    .submited-request-text = رقم الطلب:#{ $requestId }
          معرف العميل: @{ $username }
          ايدي العميل: { $userId }
          اسم العميل: <a href="tg://user?id={ $userId }">{ $name }</a>

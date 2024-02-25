@@ -29,6 +29,7 @@ import {
   adminProvePayoutFeature,
   showTableFeature,
   topicLogMessagesFeature,
+  partialPaymentFeature,
 } from "#root/bot/features/index.js";
 import { autoThread } from "@grammyjs/auto-thread";
 import { errorHandler } from "#root/bot/handlers/index.js";
@@ -89,6 +90,7 @@ export function createBot(token: string, options: Options) {
   protectedBot.use(setRateFeature);
   protectedBot.use(callbackQueryFeature);
   protectedBot.use(adminProvePayoutFeature);
+  protectedBot.use(partialPaymentFeature);
 
   // must be the last handler
   protectedBot.use(unhandledFeature);

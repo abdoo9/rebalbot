@@ -9,42 +9,89 @@ import { i18n } from "../i18n.js";
 import { calculateFinalAmountAfterFee } from "../helpers/calculate-final-amount-after-fee.js";
 import { escapeHTML } from "../helpers/escape-html.js";
 import { getTopicLink } from "../helpers/get-topic-link.js";
+import { formatNumber } from "../helpers/format-number.js";
 
 const composer = new Composer<Context>();
 
 const feature = composer.chatType("private");
-const fromCurrenciesTranslationTexts = i18n.locales.map((locale) =>
-  i18n.t(locale, "currency.from"),
-);
-const toCurrenciesTranslationText = i18n.locales.map((locale) =>
-  i18n.t(locale, "currency.to"),
-);
-const exchangeRates = await prisma.exchangeRate.findMany({
-  select: {
-    from: true,
-    to: true,
-  },
-});
 
-const fromCurrencies: string[] = [];
-const toCurrencies: string[] = [];
+async function getFromCurrencies() {
+  const exchangeRates = await prisma.exchangeRate.findMany({
+    select: {
+      from: true,
+    },
+  });
 
-// eslint-disable-next-line no-restricted-syntax
-for (const rate of exchangeRates) {
-  fromCurrencies.push(rate.from);
-  toCurrencies.push(rate.to);
+  const fromCurrencies: string[] = [];
+  // eslint-disable-next-line no-restricted-syntax
+  for (const rate of exchangeRates) {
+    fromCurrencies.push(rate.from);
+  }
+
+  return fromCurrencies;
 }
-const fromCurrencyRegex = new RegExp(
-  fromCurrenciesTranslationTexts.join("|"),
-  "i",
-);
-const toCurrencyRegex = new RegExp(toCurrenciesTranslationText.join("|"), "i");
+
+async function getToCurrencies() {
+  const exchangeRates = await prisma.exchangeRate.findMany({
+    select: {
+      to: true,
+    },
+  });
+
+  const toCurrencies: string[] = [];
+  // eslint-disable-next-line no-restricted-syntax
+  for (const rate of exchangeRates) {
+    toCurrencies.push(rate.to);
+  }
+
+  return toCurrencies;
+}
+
+async function getFromCurrencyRegex() {
+  const exchangeRates = await prisma.exchangeRate.findMany({
+    select: {
+      from: true,
+    },
+  });
+  const fromCurrencies = await getFromCurrencies();
+  // eslint-disable-next-line no-restricted-syntax
+  for (const rate of exchangeRates) {
+    // eslint-disable-next-line no-await-in-loop, unicorn/no-await-expression-member
+    fromCurrencies.push(rate.from);
+  }
+
+  const fromCurrenciesTranslationTexts = i18n.locales.map((locale) =>
+    i18n.t(locale, "currency.from"),
+  );
+
+  return new RegExp(fromCurrenciesTranslationTexts.join("|"), "i");
+}
+
+async function getToCurrencyRegex() {
+  const exchangeRates = await prisma.exchangeRate.findMany({
+    select: {
+      to: true,
+    },
+  });
+  const toCurrencies = await getToCurrencies();
+  // eslint-disable-next-line no-restricted-syntax
+  for (const rate of exchangeRates) {
+    // eslint-disable-next-line no-await-in-loop, unicorn/no-await-expression-member
+    toCurrencies.push(rate.to);
+  }
+
+  const toCurrenciesTranslationTexts = i18n.locales.map((locale) =>
+    i18n.t(locale, "currency.to"),
+  );
+
+  return new RegExp(toCurrenciesTranslationTexts.join("|"), "i");
+}
 
 feature
   .filter(
-    (ctx) =>
+    async (ctx) =>
       !!ctx.message?.reply_markup?.inline_keyboard[0][0].text.match(
-        fromCurrencyRegex,
+        await getFromCurrencyRegex(),
       ),
   )
   .on(
@@ -54,6 +101,7 @@ feature
       const fromCurrency = ctx.message.reply_markup?.inline_keyboard[0][0].text
         .split(":")[1]
         .trim();
+      const fromCurrencies = await getFromCurrencies();
       if (fromCurrency && fromCurrencies.includes(fromCurrency)) {
         const { count: deletedCount } = await ctx.prisma.request.deleteMany({
           where: {
@@ -95,9 +143,9 @@ feature
 
 feature
   .filter(
-    (ctx) =>
+    async (ctx) =>
       !!ctx.message?.reply_markup?.inline_keyboard[0][0].text.match(
-        toCurrencyRegex,
+        await getToCurrencyRegex(),
       ),
   )
   .on(
@@ -108,6 +156,8 @@ feature
       const toCurrency = ctx.message.reply_markup?.inline_keyboard[0][0].text
         .split(":")[1]
         .trim();
+
+      const toCurrencies = await getToCurrencies();
       if (toCurrency && toCurrencies.includes(toCurrency)) {
         logger.info(`befor const request =: ${JSON.stringify(ctx.session)}`);
         const request = await ctx.prisma.request
@@ -139,8 +189,8 @@ feature
             transactionId: "not-provided",
             finalAmount: "not-provided",
             userReceivingWallet: "not-provided",
-            rate: `${String(rate)} ​`,
-            fee: `${String(fee)} ​`,
+            rate: `${formatNumber(rate)} ​`,
+            fee: `${formatNumber(fee)} ​`,
             amount: ctx.t("request.amount-required", { fromCurrency }),
           }),
         );
@@ -198,10 +248,10 @@ feature.hears(/\d+/, logHandle("message-amount"), async (ctx, next) => {
       ctx.t("request.text", {
         toCurrency,
         fromCurrency,
-        rate: `${String(rate)} ​`,
-        fee: `${String(fee)} ​`,
-        finalAmount: `${String(finalAmount)} ​`,
-        amount: `${String(amount)} ​`,
+        rate: `${formatNumber(rate)} ​`,
+        fee: `${formatNumber(fee)} ​`,
+        finalAmount: `${formatNumber(finalAmount)} ​`,
+        amount: `${formatNumber(amount)} ​`,
         userReceivingWallet,
         transactionId: "not-provided",
       }),
@@ -258,10 +308,10 @@ feature.hears(
         ctx.t("request.please-send-money-to-admin-wallet", {
           toCurrency,
           fromCurrency,
-          rate: `${String(rate)} ​`,
-          fee: `${String(fee)} ​`,
-          finalAmount: `${String(finalAmount)} ​`,
-          amount: `${String(amount)} ​`,
+          rate: `${formatNumber(rate)} ​`,
+          fee: `${formatNumber(fee)} ​`,
+          finalAmount: `${formatNumber(finalAmount)} ​`,
+          amount: `${formatNumber(amount)} ​`,
           adminWallet,
           userReceivingWallet,
           transactionId: "not-provided",
@@ -307,10 +357,10 @@ feature.hears(
           toCurrency,
           fromCurrency,
           transactionId,
-          rate: `${String(rate)} ​`,
-          fee: `${String(fee)} ​`,
-          finalAmount: `${String(finalAmount)} ​`,
-          amount: `${String(amount)} ​`,
+          rate: `${formatNumber(rate)} ​`,
+          fee: `${formatNumber(fee)} ​`,
+          finalAmount: `${formatNumber(finalAmount)} ​`,
+          amount: `${formatNumber(amount)} ​`,
           userReceivingWallet,
         }),
       );
@@ -346,10 +396,10 @@ feature.on("message:photo", logHandle("message-photo"), async (ctx, next) => {
       caption: ctx.t("request.text", {
         toCurrency,
         fromCurrency,
-        rate: `${String(rate)} ​`,
-        fee: `${String(fee)} ​`,
-        finalAmount: `${String(finalAmount)} ​`,
-        amount: `${String(amount)} ​`,
+        rate: `${formatNumber(rate)} ​`,
+        fee: `${formatNumber(fee)} ​`,
+        finalAmount: `${formatNumber(finalAmount)} ​`,
+        amount: `${formatNumber(amount)} ​`,
         userReceivingWallet,
         transactionId,
       }),
@@ -423,10 +473,10 @@ feature.callbackQuery(
               toCurrency,
               fromCurrency,
               transactionId,
-              rate: `${String(rate)} ​`,
-              fee: `${String(fee)} ​`,
-              finalAmount: `${String(finalAmount)} ​`,
-              amount: `${String(amount)} ​`,
+              rate: `${formatNumber(rate)} ​`,
+              fee: `${formatNumber(fee)} ​`,
+              finalAmount: `${formatNumber(finalAmount)} ​`,
+              amount: `${formatNumber(amount)} ​`,
               userReceivingWallet,
               adminWallet,
             }),
@@ -443,11 +493,11 @@ feature.callbackQuery(
             username: ctx.from?.username ?? "not-provided",
             toCurrency,
             fromCurrency,
-            amount: `${String(amount)} ​`,
+            amount: `${formatNumber(amount)} ​`,
             transactionId,
-            rate: `${String(rate)} ​`,
-            fee: `${String(fee)} ​`,
-            finalAmount: `${String(finalAmount)} ​`,
+            rate: `${formatNumber(rate)} ​`,
+            fee: `${formatNumber(fee)} ​`,
+            finalAmount: `${formatNumber(finalAmount)} ​`,
             userReceivingWallet,
             adminWallet,
             topicLink: getTopicLink(ctx.session.logTopicThreadId),
