@@ -26,6 +26,8 @@ model Request {
   fromCurrency          String?   @map("from_currency")
   toCurrency            String?   @map("to_currency")
   submittedAt           DateTime? @map("submitted_at")
+  doneAt                DateTime? @map("done_at")
+  isRejected            Boolean?  @default(false) @map("is_rejected")
   amount                Float?
   fee                   Float?
   feeThreshold          Float?    @map("fee_threshold")
@@ -35,7 +37,7 @@ model Request {
   transactionId         String?   @map("transaction_id")
   photoId               String?   @map("photo_id")
   adminConfirmedReceipt Boolean?  @map("admin_confirmed_receipt")
-  adminPaidAmount       Float?    @map("admin_paid_amount")
+  adminPaymentsMade     Float[]   @map("admin_paid_amount")
   exchangeRate          Float     @map("exchange_rate")
   updatedAt             DateTime  @updatedAt @map("updated_at")
   createdAt             DateTime  @default(now()) @map("created_at")

@@ -52,10 +52,8 @@ feature.callbackQuery(
     replyMarkup?.inline_keyboard[0].pop();
     replyMarkup?.inline_keyboard.push([
       {
-        text: ctx.t("request.approve"),
-        callback_data: `approve:${ctx.callbackQuery.data.split(":")[1]}:${
-          ctx.callbackQuery.data.split(":")[2]
-        }`,
+        text: ctx.t("رد بصورة اثبات التحويل"),
+        callback_data: "_",
       },
     ]);
     await ctx.editMessageReplyMarkup({
@@ -82,6 +80,13 @@ feature.callbackQuery(/reject:.*/, logHandle("callback-query"), async (ctx) => {
   const requestId = ctx.callbackQuery.data.split(":")[1];
   const userId = ctx.callbackQuery.data.split(":")[2];
   const chatId = ctx.callbackQuery.message?.chat.id ?? 0;
+  await ctx.prisma.request.update({
+    where: { id: Number(requestId) },
+    data: {
+      isRejected: true,
+      doneAt: new Date(),
+    },
+  });
   await ctx.answerCallbackQuery({
     text: `${ctx.t("request.request-rejected", { requestId })}`,
     show_alert: true,
@@ -117,6 +122,13 @@ feature.callbackQuery(
     const requestId = ctx.callbackQuery.data.split(":")[1];
     const userId = ctx.callbackQuery.data.split(":")[2];
     const chatId = ctx.callbackQuery.message?.chat.id ?? 0;
+
+    await ctx.prisma.request.update({
+      where: { id: Number(requestId) },
+      data: {
+        doneAt: new Date(),
+      },
+    });
     await ctx.answerCallbackQuery({
       text: `${ctx.t("request.request-approved", { requestId })}`,
       show_alert: true,

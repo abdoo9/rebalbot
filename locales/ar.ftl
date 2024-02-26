@@ -78,3 +78,6 @@ admins-group =
          { request.text }
          محفظة الادمن: <code>{ $adminWallet }</code>
          رابط الدردشة: { $topicLink}
+prevent-making-request=
+    .message = لا يمكنك ارسال طلب جديد حتى يتم مراجعة الطلب السابق { $requestId }
+    .title = لا يمكنك ارسال طلب جديد حتى يتم مراجعة الطلب السابق { $requestId }

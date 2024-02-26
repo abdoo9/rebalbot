@@ -2,20 +2,10 @@ import { Composer, InputFile } from "grammy";
 import type { Context } from "#root/bot/context.js";
 import { logHandle } from "#root/bot/helpers/logging.js";
 import { config } from "#root/config.js";
-// import { prisma } from "#root/prisma/index.js";
 import { logger } from "#root/logger.js";
 import { getTable } from "../helpers/get-table.js";
 
 const composer = new Composer<Context>();
-
-// const exchangeRates = await prisma.exchangeRate.findMany({
-//   select: {
-//     from: true,
-//     to: true,
-//   },
-// });
-
-// const currencies = exchangeRates.flatMap((rate) => [rate.from, rate.to]);
 
 const feature = composer.filter((ctx) => {
   return (

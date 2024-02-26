@@ -30,6 +30,7 @@ import {
   showTableFeature,
   topicLogMessagesFeature,
   partialPaymentFeature,
+  preventMakingRequestFeature,
 } from "#root/bot/features/index.js";
 import { autoThread } from "@grammyjs/auto-thread";
 import { errorHandler } from "#root/bot/handlers/index.js";
@@ -78,8 +79,10 @@ export function createBot(token: string, options: Options) {
   if (isMultipleLocales) {
     protectedBot.use(languageFeature);
   }
+  protectedBot.use(partialPaymentFeature);
   protectedBot.use(topicLogMessagesFeature);
   protectedBot.use(welcomeFeature);
+  protectedBot.use(preventMakingRequestFeature);
   protectedBot.use(showTableFeature);
   protectedBot.use(adminFeature);
   protectedBot.use(inlineQueryFeature);
@@ -90,7 +93,6 @@ export function createBot(token: string, options: Options) {
   protectedBot.use(setRateFeature);
   protectedBot.use(callbackQueryFeature);
   protectedBot.use(adminProvePayoutFeature);
-  protectedBot.use(partialPaymentFeature);
 
   // must be the last handler
   protectedBot.use(unhandledFeature);
