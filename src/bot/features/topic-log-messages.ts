@@ -39,7 +39,7 @@ feature
       } else {
         const newTopic = await ctx.api.createForumTopic(
           config.LOG_GROUP_ID,
-          `${(`${ctx.from?.first_name} ${ctx.from?.last_name}` ?? " ").slice(
+          `${`${ctx.from?.first_name} ${ctx.from?.last_name ?? " "}`.slice(
             0,
             120 - (ctx.from?.id?.toString() ?? "").length,
           )}-${ctx.from?.id}`,
@@ -62,7 +62,54 @@ feature
   );
 
 feature
+  .filter(
+    (ctx) =>
+      ctx.message?.chat.id === config.LOG_GROUP_ID &&
+      endsWithDashAndNumber(
+        ctx.message?.reply_to_message?.forum_topic_created?.name,
+      ),
+  )
+  .command("stats", logHandle("stats"), async (ctx) => {
+    const userId = ctx.message?.reply_to_message?.forum_topic_created?.name
+      .split("-")
+      .at(-1);
+    if (!userId) return;
+    const approvedCount = await ctx.prisma.request.count({
+      where: {
+        User: {
+          telegramId: Number(userId),
+        },
+        doneAt: {
+          not: undefined,
+        },
+        isRejected: false,
+      },
+    });
+    const rejectedCount = await ctx.prisma.request.count({
+      where: {
+        User: {
+          telegramId: Number(userId),
+        },
+        doneAt: {
+          not: undefined,
+        },
+        isRejected: true,
+      },
+    });
+    const pendingCount = await ctx.prisma.request.count({
+      where: {
+        User: {
+          telegramId: Number(userId),
+        },
+        doneAt: undefined,
+      },
+    });
+    await ctx.reply(
+      `الطلبات المقبولة: ${approvedCount}\nالطلبات المرفوضة: ${rejectedCount}\nالطلبات قيد المعالجة: ${pendingCount}`,
+    );
+  });
 
+feature
   .filter(
     (ctx) =>
       ctx.message?.chat.id === config.LOG_GROUP_ID &&

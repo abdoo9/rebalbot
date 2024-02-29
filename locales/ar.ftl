@@ -70,6 +70,7 @@ request =
     .reject = الرفض
     .error = حدث خطأ  /start
     .admin-confirm-receipt = تم تأكيد الاستلام
+    .wait-for-previous-request = لا يمكنك ارسال طلب جديد حتى يتم مراجعة الطلب السابق { $requestId }
 admins-group =
     .submited-request-text = رقم الطلب:#{ $requestId }
          معرف العميل: @{ $username }
