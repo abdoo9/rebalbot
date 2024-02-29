@@ -83,7 +83,9 @@ feature.callbackQuery(/reject:.*/, logHandle("callback-query"), async (ctx) => {
   await ctx.prisma.request.update({
     where: { id: Number(requestId) },
     data: {
-      isRejected: true,
+      isRejected: {
+        set: true,
+      },
       doneAt: new Date(),
     },
   });
