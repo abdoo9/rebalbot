@@ -138,48 +138,47 @@ feature.callbackQuery(/reject:.*/, logHandle("callback-query"), async (ctx) => {
     });
 });
 
-feature.callbackQuery(
-  /approve:.*/,
-  logHandle("callback-query"),
-  async (ctx) => {
-    const requestId = ctx.callbackQuery.data.split(":")[1];
-    const userId = ctx.callbackQuery.data.split(":")[2];
-    const chatId = ctx.callbackQuery.message?.chat.id ?? 0;
+// feature.callbackQuery(
+//   /approve:.*/,
+//   logHandle("callback-query"),
+//   async (ctx) => {
+//     const requestId = ctx.callbackQuery.data.split(":")[1];
+//     const userId = ctx.callbackQuery.data.split(":")[2];
+//     const chatId = ctx.callbackQuery.message?.chat.id ?? 0;
 
-    await ctx.prisma.request.update({
-      where: { id: Number(requestId) },
-      data: {
-        doneAt: new Date(),
-      },
-    });
-    await ctx.answerCallbackQuery({
-      text: `${ctx.t("request.request-approved", { requestId })}`,
-      show_alert: true,
-    });
-    await ctx.api.sendMessage(
-      ctx.callbackQuery.message?.chat.id ?? config.ADMINS_CHAT_ID,
-      `${ctx.t("request.request-approved", { requestId })}`,
-    );
+//     await ctx.prisma.request.update({
+//       where: { id: Number(requestId) },
+//       data: {
+//         doneAt: new Date(),
+//       },
+//     });
+//     await ctx.answerCallbackQuery({
+//       text: `${ctx.t("request.request-approved", { requestId })}`,
+//       show_alert: true,
+//     });
+//     await ctx.api.sendMessage(
+//       ctx.callbackQuery.message?.chat.id ?? config.ADMINS_CHAT_ID,
+//       `${ctx.t("request.request-approved", { requestId })}`,
+//     );
 
-    await ctx.api.sendMessage(
-      userId,
-      `${ctx.t("request.request-approved", { requestId })}`,
-    );
+//     await ctx.api.sendMessage(
+//       userId,
+//       `${ctx.t("request.request-approved", { requestId })}`,
+//     );
 
-    await ctx.api
-      .forwardMessage(
-        chatId,
-        chatId,
-        ctx.callbackQuery.message?.message_id ?? 0,
-        { message_thread_id: config.ADMINS_CHAT_FINISED_THREAD_ID },
-      )
-      .then(async () => {
-        await ctx.api.deleteMessage(
-          chatId,
-          ctx.callbackQuery.message?.message_id ?? 0,
-        );
-      });
-  },
-);
+//     await ctx.api
+//       .forwardMessage(
+//         config.LOG_FINISHED_CHANNEL_ID,
+//         chatId,
+//         ctx.callbackQuery.message?.message_id ?? 0,
+//       )
+//       .then(async () => {
+//         await ctx.api.deleteMessage(
+//           chatId,
+//           ctx.callbackQuery.message?.message_id ?? 0,
+//         );
+//       });
+//   },
+// );
 
 export { composer as callbackQueryFeature };

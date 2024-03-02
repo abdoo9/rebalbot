@@ -79,18 +79,13 @@ feature.on(
         }),
       ];
       await ctx.api
-        .sendMediaGroup(chatId, photosForAdmin, {
-          message_thread_id: config.ADMINS_CHAT_FINISED_THREAD_ID,
-        })
+        .sendMediaGroup(config.LOG_FINISHED_CHANNEL_ID, photosForAdmin)
         .then(async () => {
           await ctx.api.sendMessage(
-            chatId,
+            config.LOG_FINISHED_CHANNEL_ID,
             `قام <a href="tg://user?id=${ctx.from.id}">${escapeHTML(
               ctx.message.from?.first_name,
             )}</a> بالموافقة على الطلب #${requestId} وتم ارسال الصور للعميل`,
-            {
-              message_thread_id: config.ADMINS_CHAT_FINISED_THREAD_ID,
-            },
           );
         })
         .then(async () => {
@@ -183,18 +178,13 @@ feature.on(
               );
 
               await ctx.api
-                .sendMediaGroup(chatId, photosForAdmin, {
-                  message_thread_id: config.ADMINS_CHAT_FINISED_THREAD_ID,
-                })
+                .sendMediaGroup(config.LOG_FINISHED_CHANNEL_ID, photosForAdmin)
                 .then(async () => {
                   await ctx.api.sendMessage(
-                    chatId,
+                    config.LOG_FINISHED_CHANNEL_ID,
                     `قام <a href="tg://user?id=${ctx.from.id}">${escapeHTML(
                       ctx.message.from?.first_name,
                     )}</a> بالموافقة على الطلب #${requestId} وتم ارسال الصور للعميل`,
-                    {
-                      message_thread_id: config.ADMINS_CHAT_FINISED_THREAD_ID,
-                    },
                   );
                 })
                 .then(async () => {
