@@ -9,13 +9,13 @@ datasource db {
 }
 
 model User {
-  id               Int                @id @default(autoincrement())
-  telegramId       BigInt             @unique @map("telegram_id")
-  contact          String?
-  updatedAt        DateTime           @updatedAt @map("updated_at")
-  createdAt        DateTime           @default(now()) @map("created_at")
-  Request          Request[]
-  AdminTransaction AdminTransaction[]
+  id                Int                @id @default(autoincrement())
+  telegramId        BigInt             @unique @map("telegram_id")
+  contact           String?
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  Request           Request[]
+  AdminTransactions AdminTransaction[]
 
   @@map(name: "users")
 }
@@ -76,14 +76,13 @@ model Currency {
 
 model AdminTransaction {
   id          Int      @id @default(autoincrement())
-  adminId     Int      @map("admin_id")
+  telegramId  BigInt   @map("admin_id")
   requestId   Int      @map("request_id")
-  amount      Float
   description String?
   updatedAt   DateTime @updatedAt @map("updated_at")
   createdAt   DateTime @default(now()) @map("created_at")
   Request     Request  @relation(fields: [requestId], references: [id])
-  Admin       User     @relation(fields: [adminId], references: [id])
+  User        User     @relation(fields: [telegramId], references: [telegramId])
 
   @@map(name: "admin_transactions")
 }

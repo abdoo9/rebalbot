@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-null */
 /* eslint-disable no-irregular-whitespace */
 import { Composer, InlineKeyboard } from "grammy";
 import type { Context } from "#root/bot/context.js";
@@ -104,7 +105,7 @@ const deleteNotSubmittedRequest = async (ctx: Context) => {
         telegramId: ctx.from?.id,
       },
       submittedAt: {
-        equals: undefined,
+        equals: null,
       },
     },
   });

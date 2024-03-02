@@ -56,6 +56,21 @@ feature.callbackQuery(
         callback_data: "_",
       },
     ]);
+    await ctx.prisma.adminTransaction.create({
+      data: {
+        User: {
+          connect: {
+            telegramId: ctx.callbackQuery.from.id,
+          },
+        },
+        description: "قام بتاكيد استلام الطلب",
+        Request: {
+          connect: {
+            id: Number(ctx.callbackQuery.data.split(":")[1]),
+          },
+        },
+      },
+    });
     await ctx.editMessageReplyMarkup({
       reply_markup: {
         inline_keyboard: [
@@ -87,6 +102,12 @@ feature.callbackQuery(/reject:.*/, logHandle("callback-query"), async (ctx) => {
         set: true,
       },
       doneAt: new Date(),
+      AdminTransaction: {
+        create: {
+          telegramId: ctx.callbackQuery.from.id,
+          description: "قام برفض الطلب",
+        },
+      },
     },
   });
   await ctx.answerCallbackQuery({

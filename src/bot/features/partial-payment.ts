@@ -54,6 +54,16 @@ feature.on(
           where: { id: Number(requestId) },
           data: {
             adminPaymentsMade,
+            AdminTransaction: {
+              create: {
+                User: {
+                  connect: {
+                    telegramId: ctx.from?.id,
+                  },
+                },
+                description: `قام بدفع جزئي ${adminPaymentsMade}`,
+              },
+            },
           },
         });
         await ctx.reply(
@@ -68,6 +78,16 @@ feature.on(
           where: { id: Number(requestId) },
           data: {
             adminPaymentsMade,
+            AdminTransaction: {
+              create: {
+                User: {
+                  connect: {
+                    telegramId: ctx.from?.id,
+                  },
+                },
+                description: `بدفع المبلغ قام باكمال جزئي ${adminPaymentsMade}`,
+              },
+            },
           },
         });
         const remainingAmount = finalAmount - totalAdminPaidAmount;
