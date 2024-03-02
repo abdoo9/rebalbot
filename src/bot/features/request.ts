@@ -5,6 +5,7 @@ import { logHandle } from "#root/bot/helpers/logging.js";
 import { logger } from "#root/logger.js";
 import { config } from "#root/config.js";
 import { prisma } from "#root/prisma/index.js";
+import { Prisma } from "@prisma/client";
 import { i18n } from "../i18n.js";
 import { calculateFinalAmountAfterFee } from "../helpers/calculate-final-amount-after-fee.js";
 import { escapeHTML } from "../helpers/escape-html.js";
@@ -87,6 +88,47 @@ async function getToCurrencyRegex() {
   return new RegExp(toCurrenciesTranslationTexts.join("|"), "i");
 }
 
+const updateRequest = async (ctx: Context, data: Prisma.RequestUpdateInput) => {
+  await ctx.prisma.request.update({
+    where: {
+      id: ctx.session.notSubmittedRequestId,
+    },
+    data,
+  });
+};
+
+const deleteNotSubmittedRequest = async (ctx: Context) => {
+  const { count: deletedCount } = await ctx.prisma.request.deleteMany({
+    where: {
+      User: {
+        telegramId: ctx.from?.id,
+      },
+      submittedAt: {
+        equals: undefined,
+      },
+    },
+  });
+  logger.info(
+    `deleted ${deletedCount} requests from database this shouldn't happen too often`,
+  );
+};
+
+const initiateRequest = async (
+  ctx: Context,
+  data: Prisma.RequestCreateInput,
+) => {
+  const request = await ctx.prisma.request.create({ data });
+  return request;
+};
+
+const getRequest = async (ctx: Context, id: number) => {
+  const request = await ctx.prisma.request.findUnique({
+    where: {
+      id,
+    },
+  });
+  return request;
+};
 feature
   .filter(
     async (ctx) =>
@@ -103,35 +145,21 @@ feature
         .trim();
       const fromCurrencies = await getFromCurrencies();
       if (fromCurrency && fromCurrencies.includes(fromCurrency)) {
-        const { count: deletedCount } = await ctx.prisma.request.deleteMany({
-          where: {
-            User: {
-              telegramId: ctx.from?.id,
-            },
-            submittedAt: undefined,
-          },
-        });
-        logger.info(
-          `deleted ${deletedCount} requests from database this shouldn't happen too often`,
-        );
-
-        const requestMessage = await ctx.reply(`you picked ${fromCurrency}`, {
+        await deleteNotSubmittedRequest(ctx);
+        await ctx.reply(`you picked ${fromCurrency}`, {
           reply_markup: new InlineKeyboard().switchInlineCurrent(
             ctx.t("request.choose-to-currency"),
             `📥$:${fromCurrency}`,
           ),
         });
-        const request = await ctx.prisma.request.create({
-          data: {
-            User: {
-              connect: {
-                telegramId: ctx.from?.id,
-              },
+        const request = await initiateRequest(ctx, {
+          User: {
+            connect: {
+              telegramId: ctx.from?.id,
             },
-            exchangeRate: 0,
-            fromCurrency,
-            messageId: requestMessage.message_id,
           },
+          exchangeRate: 0,
+          fromCurrency,
         });
         ctx.session.notSubmittedRequestId = request.id;
         logger.info(`session requestId: ${JSON.stringify(ctx.session)}`);
@@ -160,16 +188,13 @@ feature
       const toCurrencies = await getToCurrencies();
       if (toCurrency && toCurrencies.includes(toCurrency)) {
         logger.info(`befor const request =: ${JSON.stringify(ctx.session)}`);
-        const request = await ctx.prisma.request
-          .findUnique({
-            where: {
-              id: ctx.session.notSubmittedRequestId,
-            },
-          })
-          .catch(async (error) => {
-            logger.error(error);
-            await ctx.reply(ctx.t("request.error"));
-          });
+        const request = await getRequest(
+          ctx,
+          ctx.session.notSubmittedRequestId,
+        ).catch(async (error) => {
+          logger.error(error);
+          await ctx.reply(ctx.t("request.error"));
+        });
         if (!request) {
           await ctx.reply(ctx.t("request.error"));
           await next();
@@ -194,27 +219,18 @@ feature
             amount: ctx.t("request.amount-required", { fromCurrency }),
           }),
         );
-        await ctx.prisma.request.update({
-          where: {
-            id: ctx.session.notSubmittedRequestId,
-          },
-          data: {
-            toCurrency,
-            fee,
-            feeThreshold,
-            exchangeRate: rate,
-          },
+        await updateRequest(ctx, {
+          toCurrency,
+          exchangeRate: rate,
+          fee,
+          feeThreshold,
         });
       }
     },
   );
 
 feature.hears(/\d+/, logHandle("message-amount"), async (ctx, next) => {
-  const request = await ctx.prisma.request.findUnique({
-    where: {
-      id: ctx.session.notSubmittedRequestId,
-    },
-  });
+  const request = await getRequest(ctx, ctx.session.notSubmittedRequestId);
 
   if (request?.amount) {
     await next();
@@ -256,14 +272,9 @@ feature.hears(/\d+/, logHandle("message-amount"), async (ctx, next) => {
         transactionId: "not-provided",
       }),
     );
-    await ctx.prisma.request.update({
-      where: {
-        id: ctx.session.notSubmittedRequestId,
-      },
-      data: {
-        amount,
-        finalAmount,
-      },
+    await updateRequest(ctx, {
+      amount,
+      finalAmount,
     });
   } else {
     ctx.reply(ctx.t("request.invalid-amount"));
@@ -275,11 +286,7 @@ feature.hears(
   logHandle("message-user-reciving-wallet"),
   async (ctx, next) => {
     if (ctx.session.notSubmittedRequestId === undefined) await next();
-    const request = await ctx.prisma.request.findUnique({
-      where: {
-        id: ctx.session.notSubmittedRequestId,
-      },
-    });
+    const request = await getRequest(ctx, ctx.session.notSubmittedRequestId);
 
     if (request?.userReceivingWallet) {
       await next();
@@ -317,13 +324,8 @@ feature.hears(
           transactionId: "not-provided",
         }),
       );
-      await ctx.prisma.request.update({
-        where: {
-          id: ctx.session.notSubmittedRequestId,
-        },
-        data: {
-          userReceivingWallet,
-        },
+      await updateRequest(ctx, {
+        userReceivingWallet,
       });
     } else await next();
   },
@@ -333,11 +335,7 @@ feature.hears(
   /.*/,
   logHandle("message-text-transaction-id"),
   async (ctx, next) => {
-    const request = await ctx.prisma.request.findUnique({
-      where: {
-        id: ctx.session.notSubmittedRequestId,
-      },
-    });
+    const request = await getRequest(ctx, ctx.session.notSubmittedRequestId);
     if (
       request &&
       request?.fromCurrency &&
@@ -364,24 +362,15 @@ feature.hears(
           userReceivingWallet,
         }),
       );
-      await ctx.prisma.request.update({
-        where: {
-          id: ctx.session.notSubmittedRequestId,
-        },
-        data: {
-          transactionId,
-        },
+      await updateRequest(ctx, {
+        transactionId,
       });
     } else await next();
   },
 );
 
 feature.on("message:photo", logHandle("message-photo"), async (ctx, next) => {
-  const request = await ctx.prisma.request.findUnique({
-    where: {
-      id: ctx.session.notSubmittedRequestId,
-    },
-  });
+  const request = await getRequest(ctx, ctx.session.notSubmittedRequestId);
   if (request?.fromCurrency && request?.amount && request.toCurrency) {
     const fromCurrency = request?.fromCurrency ?? " ";
     const toCurrency = request?.toCurrency ?? " ";
@@ -410,13 +399,8 @@ feature.on("message:photo", logHandle("message-photo"), async (ctx, next) => {
         )
         .text(ctx.t("request.cancel"), "cancel"),
     });
-    await ctx.prisma.request.update({
-      where: {
-        id: ctx.session.notSubmittedRequestId,
-      },
-      data: {
-        photoId,
-      },
+    await updateRequest(ctx, {
+      photoId,
     });
   } else await next();
 });
@@ -426,11 +410,7 @@ feature.callbackQuery(
   logHandle("callback-query"),
   async (ctx) => {
     const requestId = ctx.callbackQuery.data.split(":")[1];
-    const request = await ctx.prisma.request.findUnique({
-      where: {
-        id: Number(requestId),
-      },
-    });
+    const request = await getRequest(ctx, Number(requestId));
     const fromCurrency = request?.fromCurrency ?? " ";
     const toCurrency = request?.toCurrency ?? " ";
     const amount = Number(request?.amount ?? 0);
@@ -452,36 +432,29 @@ feature.callbackQuery(
         show_alert: true,
       });
     } else {
-      await ctx.prisma.request
-        .update({
-          where: {
-            id: Number(requestId),
-          },
-          data: {
-            submittedAt: new Date(),
-          },
-        })
-        .then(() => {
-          ctx.callbackQuery.message
-            ?.editReplyMarkup({ inline_keyboard: [] })
-            .catch((error) => {
-              logger.error(error);
-            });
-          ctx.editMessageCaption({
-            caption: ctx.t("request.submited-request-text", {
-              requestId,
-              toCurrency,
-              fromCurrency,
-              transactionId,
-              rate: `${formatNumber(rate)} ​`,
-              fee: `${formatNumber(fee)} ​`,
-              finalAmount: `${formatNumber(finalAmount)} ​`,
-              amount: `${formatNumber(amount)} ​`,
-              userReceivingWallet,
-              adminWallet,
-            }),
+      await updateRequest(ctx, {
+        submittedAt: new Date(),
+      }).then(() => {
+        ctx.callbackQuery.message
+          ?.editReplyMarkup({ inline_keyboard: [] })
+          .catch((error) => {
+            logger.error(error);
           });
+        ctx.editMessageCaption({
+          caption: ctx.t("request.submited-request-text", {
+            requestId,
+            toCurrency,
+            fromCurrency,
+            transactionId,
+            rate: `${formatNumber(rate)} ​`,
+            fee: `${formatNumber(fee)} ​`,
+            finalAmount: `${formatNumber(finalAmount)} ​`,
+            amount: `${formatNumber(amount)} ​`,
+            userReceivingWallet,
+            adminWallet,
+          }),
         });
+      });
       await ctx.api.sendPhoto(config.ADMINS_CHAT_ID, photoId, {
         caption: `<a href="https://t.me/${ctx.from?.id}">📇​</a>${ctx.t(
           ctx.t("admins-group.submited-request-text", {
@@ -537,11 +510,7 @@ feature.callbackQuery(
 feature.command("cancel", logHandle("command"), async (ctx) => {
   const requestId = ctx.session.notSubmittedRequestId;
   if (requestId !== undefined) {
-    await ctx.prisma.request.delete({
-      where: {
-        id: requestId,
-      },
-    });
+    await deleteNotSubmittedRequest(ctx);
     ctx.session.notSubmittedRequestId = 0;
   }
   await ctx.reply(ctx.t("request.cancelled"));
@@ -551,11 +520,7 @@ feature.command("cancel", logHandle("command"), async (ctx) => {
 feature.callbackQuery("cancel", logHandle("callback-query"), async (ctx) => {
   const requestId = ctx.session.notSubmittedRequestId;
   if (requestId !== undefined) {
-    await ctx.prisma.request.delete({
-      where: {
-        id: requestId,
-      },
-    });
+    await deleteNotSubmittedRequest(ctx);
     ctx.session.notSubmittedRequestId = 0;
   }
   await ctx.answerCallbackQuery({

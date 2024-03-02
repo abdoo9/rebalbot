@@ -58,21 +58,21 @@ request =
     .submit = تاكيد الدفع
     .cancel = الغاء الطلب
     .submited = تم رفع طلبك بنجاح يرجى انتظار لبضع دقائق لمراجعة الطلب الخاص بكم
-    .submited-request-text = رقم الطلب:<code> { $requestId }</code>
+    .submited-request-text = رقم الطلب:<code> { $requestId }_R</code>
          { request.text }
          محفظة الادمن: <code>{ $adminWallet }</code>
     .already-submited = { request.submited }
     .request-approved = تم الموافقة على الطلب
-        #{ $requestId }
+        #{ $requestId }_R
     .request-rejected = تم رفض الطلب
-        #{ $requestId }
+        #{ $requestId }_R
     .approve = الموافقة
     .reject = الرفض
     .error = حدث خطأ  /start
     .admin-confirm-receipt = تم تأكيد الاستلام
-    .wait-for-previous-request = لا يمكنك ارسال طلب جديد حتى يتم مراجعة الطلب السابق { $requestId }
+    .wait-for-previous-request = لا يمكنك ارسال طلب جديد حتى يتم مراجعة الطلب السابق { $requestId }_R
 admins-group =
-    .submited-request-text = رقم الطلب:#{ $requestId }
+    .submited-request-text = رقم الطلب:#{ $requestId }_R
          معرف العميل: @{ $username }
          ايدي العميل: { $userId }
          اسم العميل: <a href="tg://user?id={ $userId }">{ $name }</a>
@@ -80,5 +80,5 @@ admins-group =
          محفظة الادمن: <code>{ $adminWallet }</code>
          رابط الدردشة: { $topicLink}
 prevent-making-request=
-    .message = لا يمكنك ارسال طلب جديد حتى يتم مراجعة الطلب السابق { $requestId }
-    .title = لا يمكنك ارسال طلب جديد حتى يتم مراجعة الطلب السابق { $requestId }
+    .message = لا يمكنك ارسال طلب جديد حتى يتم مراجعة الطلب السابق { $requestId }_R
+    .title = لا يمكنك ارسال طلب جديد حتى يتم مراجعة الطلب السابق { $requestId }_R

@@ -69,7 +69,7 @@ feature
         ctx.message?.reply_to_message?.forum_topic_created?.name,
       ),
   )
-  .command("stats", logHandle("stats"), async (ctx) => {
+  .command(["stats", "st"], logHandle("stats"), async (ctx) => {
     const userId = ctx.message?.reply_to_message?.forum_topic_created?.name
       .split("-")
       .at(-1);
@@ -105,7 +105,7 @@ feature
       },
     });
     await ctx.reply(
-      `الطلبات المقبولة: ${approvedCount}\nالطلبات المرفوضة: ${rejectedCount}\nالطلبات قيد المعالجة: ${pendingCount}`,
+      `الطلبات المكتملة: ${approvedCount}\nالطلبات المرفوضة: ${rejectedCount}\nالطلبات قيد المعالجة: ${pendingCount}`,
     );
   });
 

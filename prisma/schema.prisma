@@ -9,39 +9,41 @@ datasource db {
 }
 
 model User {
-  id         Int       @id @default(autoincrement())
-  telegramId BigInt    @unique @map("telegram_id")
-  contact    String?
-  updatedAt  DateTime  @updatedAt @map("updated_at")
-  createdAt  DateTime  @default(now()) @map("created_at")
-  Request    Request[]
+  id               Int                @id @default(autoincrement())
+  telegramId       BigInt             @unique @map("telegram_id")
+  contact          String?
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  Request          Request[]
+  AdminTransaction AdminTransaction[]
 
   @@map(name: "users")
 }
 
 model Request {
-  id                    Int       @id @unique @default(autoincrement())
-  userId                Int       @map("user_id")
-  messageId             Int       @map("message_id")
-  fromCurrency          String?   @map("from_currency")
-  toCurrency            String?   @map("to_currency")
-  submittedAt           DateTime? @map("submitted_at")
-  doneAt                DateTime? @map("done_at")
-  isRejected            Boolean?  @default(false) @map("is_rejected")
+  id                    Int                @id @unique @default(autoincrement())
+  userId                Int                @map("user_id")
+  messageId             Int?               @map("message_id")
+  fromCurrency          String?            @map("from_currency")
+  toCurrency            String?            @map("to_currency")
+  submittedAt           DateTime?          @map("submitted_at")
+  doneAt                DateTime?          @map("done_at")
+  isRejected            Boolean?           @default(false) @map("is_rejected")
   amount                Float?
   fee                   Float?
-  feeThreshold          Float?    @map("fee_threshold")
-  finalAmount           Float?    @map("final_amount")
+  feeThreshold          Float?             @map("fee_threshold")
+  finalAmount           Float?             @map("final_amount")
   description           String?
-  userReceivingWallet   String?   @map("user_receiving_wallet")
-  transactionId         String?   @map("transaction_id")
-  photoId               String?   @map("photo_id")
-  adminConfirmedReceipt Boolean?  @map("admin_confirmed_receipt")
-  adminPaymentsMade     Float[]   @map("admin_paid_amount")
-  exchangeRate          Float     @map("exchange_rate")
-  updatedAt             DateTime  @updatedAt @map("updated_at")
-  createdAt             DateTime  @default(now()) @map("created_at")
-  User                  User      @relation(fields: [userId], references: [id])
+  userReceivingWallet   String?            @map("user_receiving_wallet")
+  transactionId         String?            @map("transaction_id")
+  photoId               String?            @map("photo_id")
+  adminConfirmedReceipt Boolean?           @map("admin_confirmed_receipt")
+  adminPaymentsMade     Float[]            @map("admin_paid_amount")
+  exchangeRate          Float              @map("exchange_rate")
+  updatedAt             DateTime           @updatedAt @map("updated_at")
+  createdAt             DateTime           @default(now()) @map("created_at")
+  User                  User               @relation(fields: [userId], references: [id])
+  AdminTransaction      AdminTransaction[]
 
   @@map(name: "requests")
 }
@@ -70,4 +72,18 @@ model Currency {
   ToCurrencyExchangeRates   ExchangeRate[] @relation("ToCurrencyExchangeRates")
 
   @@map("currencies")
+}
+
+model AdminTransaction {
+  id          Int      @id @default(autoincrement())
+  adminId     Int      @map("admin_id")
+  requestId   Int      @map("request_id")
+  amount      Float
+  description String?
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  Request     Request  @relation(fields: [requestId], references: [id])
+  Admin       User     @relation(fields: [adminId], references: [id])
+
+  @@map(name: "admin_transactions")
 }
