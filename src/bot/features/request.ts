@@ -163,6 +163,7 @@ feature
           fromCurrency,
         });
         ctx.session.notSubmittedRequestId = request.id;
+        ctx.session.state = "awaiting-to-currency";
         logger.info(`session requestId: ${JSON.stringify(ctx.session)}`);
       } else {
         await ctx.reply(ctx.t("request.invalid-sticker"));
@@ -187,7 +188,11 @@ feature
         .trim();
 
       const toCurrencies = await getToCurrencies();
-      if (toCurrency && toCurrencies.includes(toCurrency)) {
+      if (
+        toCurrency &&
+        toCurrencies.includes(toCurrency) &&
+        ctx.session.state === "awaiting-to-currency"
+      ) {
         logger.info(`befor const request =: ${JSON.stringify(ctx.session)}`);
         const request = await getRequest(
           ctx,
@@ -226,6 +231,9 @@ feature
           fee,
           feeThreshold,
         });
+        ctx.session.state = "awaiting-amount";
+      } else {
+        next();
       }
     },
   );
@@ -240,7 +248,8 @@ feature.hears(/\d+/, logHandle("message-amount"), async (ctx, next) => {
     request?.exchangeRate &&
     request?.fee &&
     request?.toCurrency &&
-    request?.fromCurrency
+    request?.fromCurrency &&
+    ctx.session.state === "awaiting-amount"
   ) {
     const fromCurrency = request?.fromCurrency;
     const toCurrency = request?.toCurrency;
@@ -277,8 +286,9 @@ feature.hears(/\d+/, logHandle("message-amount"), async (ctx, next) => {
       amount,
       finalAmount,
     });
+    ctx.session.state = "awaiting-wallet";
   } else {
-    ctx.reply(ctx.t("request.invalid-amount"));
+    await next();
   }
 });
 
@@ -296,7 +306,8 @@ feature.hears(
       request?.amount &&
       request.toCurrency &&
       request?.exchangeRate &&
-      request?.fee
+      request?.fee &&
+      ctx.session.state === "awaiting-wallet"
     ) {
       const fromCurrency = request?.fromCurrency ?? " ";
       const toCurrency = request?.toCurrency ?? " ";
@@ -328,7 +339,8 @@ feature.hears(
       await updateRequest(ctx, {
         userReceivingWallet,
       });
-    } else await next();
+      ctx.session.state = "awaiting-transaction-id";
+    } else next();
   },
 );
 
@@ -341,7 +353,8 @@ feature.hears(
       request &&
       request?.fromCurrency &&
       request?.amount &&
-      request.toCurrency
+      request.toCurrency &&
+      ctx.session.state === "awaiting-transaction-id"
     ) {
       const fromCurrency = request?.fromCurrency ?? " ";
       const toCurrency = request?.toCurrency ?? " ";
@@ -366,13 +379,19 @@ feature.hears(
       await updateRequest(ctx, {
         transactionId,
       });
+      ctx.session.state = "awaiting-proof-image";
     } else await next();
   },
 );
 
 feature.on("message:photo", logHandle("message-photo"), async (ctx, next) => {
   const request = await getRequest(ctx, ctx.session.notSubmittedRequestId);
-  if (request?.fromCurrency && request?.amount && request.toCurrency) {
+  if (
+    request?.fromCurrency &&
+    request?.amount &&
+    request.toCurrency &&
+    ctx.session.state === "awaiting-proof-image"
+  ) {
     const fromCurrency = request?.fromCurrency ?? " ";
     const toCurrency = request?.toCurrency ?? " ";
     const amount = Number(request?.amount ?? 0);
@@ -403,6 +422,7 @@ feature.on("message:photo", logHandle("message-photo"), async (ctx, next) => {
     await updateRequest(ctx, {
       photoId,
     });
+    ctx.session.state = "idle";
   } else await next();
 });
 
@@ -513,6 +533,7 @@ feature.command("cancel", logHandle("command"), async (ctx) => {
   if (requestId !== undefined) {
     await deleteNotSubmittedRequest(ctx);
     ctx.session.notSubmittedRequestId = 0;
+    ctx.session.state = "idle";
   }
   await ctx.reply(ctx.t("request.cancelled"));
   await ctx.deleteMessage();
@@ -523,6 +544,7 @@ feature.callbackQuery("cancel", logHandle("callback-query"), async (ctx) => {
   if (requestId !== undefined) {
     await deleteNotSubmittedRequest(ctx);
     ctx.session.notSubmittedRequestId = 0;
+    ctx.session.state = "idle";
   }
   await ctx.answerCallbackQuery({
     text: ctx.t("request.cancelled"),

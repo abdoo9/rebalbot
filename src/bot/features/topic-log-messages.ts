@@ -1,3 +1,6 @@
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable no-await-in-loop */
+/* eslint-disable unicorn/no-null */
 import { Composer } from "grammy";
 import type { Context } from "#root/bot/context.js";
 import { logHandle } from "#root/bot/helpers/logging.js";
@@ -74,39 +77,62 @@ feature
       .split("-")
       .at(-1);
     if (!userId) return;
-    const approvedCount = await ctx.prisma.request.count({
-      where: {
-        User: {
-          telegramId: Number(userId),
+
+    const now = new Date();
+    const oneMonthAgo = new Date(now.setMonth(now.getMonth() - 1));
+    const sixMonthsAgo = new Date(now.setMonth(now.getMonth() - 6));
+
+    const timePeriods = [
+      { name: "All Time", since: new Date(0) },
+      { name: "Last Month", since: oneMonthAgo },
+      { name: "Last 6 Months", since: sixMonthsAgo },
+    ];
+
+    for (const { name, since } of timePeriods) {
+      const approvedCount = await ctx.prisma.request.count({
+        where: {
+          User: {
+            telegramId: Number(userId),
+          },
+          doneAt: {
+            not: null,
+          },
+          isRejected: false,
+          createdAt: {
+            gte: since,
+          },
         },
-        doneAt: {
-          not: undefined,
+      });
+      const rejectedCount = await ctx.prisma.request.count({
+        where: {
+          User: {
+            telegramId: Number(userId),
+          },
+          doneAt: {
+            not: null,
+          },
+          isRejected: true,
+          createdAt: {
+            gte: since,
+          },
         },
-        isRejected: false,
-      },
-    });
-    const rejectedCount = await ctx.prisma.request.count({
-      where: {
-        User: {
-          telegramId: Number(userId),
+      });
+      const pendingCount = await ctx.prisma.request.count({
+        where: {
+          User: {
+            telegramId: Number(userId),
+          },
+          doneAt: null,
+          createdAt: {
+            gte: since,
+          },
         },
-        doneAt: {
-          not: undefined,
-        },
-        isRejected: true,
-      },
-    });
-    const pendingCount = await ctx.prisma.request.count({
-      where: {
-        User: {
-          telegramId: Number(userId),
-        },
-        doneAt: undefined,
-      },
-    });
-    await ctx.reply(
-      `الطلبات المكتملة: ${approvedCount}\nالطلبات المرفوضة: ${rejectedCount}\nالطلبات قيد المعالجة: ${pendingCount}`,
-    );
+      });
+
+      await ctx.reply(
+        `${name}:\nالطلبات المكتملة: ${approvedCount}\nالطلبات المرفوضة: ${rejectedCount}\nالطلبات قيد المعالجة: ${pendingCount}`,
+      );
+    }
   });
 
 feature

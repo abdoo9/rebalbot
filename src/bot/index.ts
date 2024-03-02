@@ -31,6 +31,7 @@ import {
   topicLogMessagesFeature,
   partialPaymentFeature,
   preventMakingRequestFeature,
+  adminStatsFeature,
 } from "#root/bot/features/index.js";
 import { autoThread } from "@grammyjs/auto-thread";
 import { errorHandler } from "#root/bot/handlers/index.js";
@@ -66,7 +67,11 @@ export function createBot(token: string, options: Options) {
   protectedBot.use(hydrate());
   protectedBot.use(
     session({
-      initial: () => ({ notSubmittedRequestId: 0, logTopicThreadId: 0 }),
+      initial: () => ({
+        notSubmittedRequestId: 0,
+        logTopicThreadId: 0,
+        state: "idle",
+      }),
       storage: new MemorySessionStorage(),
       getSessionKey: (ctx) => String(ctx.chat?.id ?? ctx.inlineQuery?.from?.id),
     }),
@@ -93,6 +98,7 @@ export function createBot(token: string, options: Options) {
   protectedBot.use(setRateFeature);
   protectedBot.use(callbackQueryFeature);
   protectedBot.use(adminProvePayoutFeature);
+  protectedBot.use(adminStatsFeature);
 
   // must be the last handler
   protectedBot.use(unhandledFeature);

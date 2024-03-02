@@ -10,6 +10,13 @@ import type { PrismaClientX } from "#root/prisma/index.js";
 export type SessionData = {
   notSubmittedRequestId: number;
   logTopicThreadId: number;
+  state:
+    | "idle"
+    | "awaiting-to-currency"
+    | "awaiting-amount"
+    | "awaiting-wallet"
+    | "awaiting-transaction-id"
+    | "awaiting-proof-image";
 };
 
 type ExtendedContextFlavor = {
