@@ -77,7 +77,15 @@ feature.callbackQuery(
         },
       },
     });
-    await ctx.editMessageReplyMarkup({
+    await ctx.copyMessage(config.ADMINS_CHAT_ID, {
+      reply_markup: replyMarkup,
+      message_thread_id: isZainCash
+        ? config.ADMINS_CHAT_ZAINCASH_REQUESTS_THREAD_ID
+        : config.ADMINS_CHAT_PROCESSING_THREAD_ID,
+    });
+    await ctx.editMessageCaption({
+      caption:
+        `#${getRequestId(ctx.callbackQuery.message?.caption)}_R` ?? "error",
       reply_markup: {
         inline_keyboard: [
           [
@@ -88,16 +96,6 @@ feature.callbackQuery(
           ],
         ],
       },
-    });
-    await ctx.copyMessage(config.ADMINS_CHAT_ID, {
-      reply_markup: replyMarkup,
-      message_thread_id: isZainCash
-        ? config.ADMINS_CHAT_ZAINCASH_REQUESTS_THREAD_ID
-        : config.ADMINS_CHAT_PROCESSING_THREAD_ID,
-    });
-    await ctx.editMessageCaption({
-      caption:
-        `#${getRequestId(ctx.callbackQuery.message?.caption)}_R` ?? "error",
     });
   },
 );
