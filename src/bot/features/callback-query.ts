@@ -77,10 +77,6 @@ feature.callbackQuery(
         },
       },
     });
-    await ctx.editMessageCaption({
-      caption:
-        `#${getRequestId(ctx.callbackQuery.message?.caption)}_R` ?? "error",
-    });
     await ctx.editMessageReplyMarkup({
       reply_markup: {
         inline_keyboard: [
@@ -98,6 +94,10 @@ feature.callbackQuery(
       message_thread_id: isZainCash
         ? config.ADMINS_CHAT_ZAINCASH_REQUESTS_THREAD_ID
         : config.ADMINS_CHAT_PROCESSING_THREAD_ID,
+    });
+    await ctx.editMessageCaption({
+      caption:
+        `#${getRequestId(ctx.callbackQuery.message?.caption)}_R` ?? "error",
     });
   },
 );
