@@ -12,6 +12,7 @@ import { calculateFinalAmountAfterFee } from "../helpers/calculate-final-amount-
 import { escapeHTML } from "../helpers/escape-html.js";
 import { getTopicLink } from "../helpers/get-topic-link.js";
 import { formatNumber } from "../helpers/format-number.js";
+import { toHashtag } from "../helpers/to-hashtag.js";
 
 const composer = new Composer<Context>();
 
@@ -496,6 +497,8 @@ feature.callbackQuery(
             adminWallet,
             topicLink: getTopicLink(ctx.session.logTopicThreadId),
           }),
+        )} \n${toHashtag(`from ${fromCurrency}`)}\n${toHashtag(
+          `to ${toCurrency}`,
         )}`,
         reply_markup: new InlineKeyboard([
           [

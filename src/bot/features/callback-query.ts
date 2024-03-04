@@ -3,8 +3,14 @@ import type { Context } from "#root/bot/context.js";
 import { logHandle } from "#root/bot/helpers/logging.js";
 import { config } from "#root/config.js";
 
+const getRequestId = (caption: string | undefined) => {
+  const match = caption?.match(/#(\d+)/);
+  return match?.[1];
+};
+
 const composer = new Composer<Context>();
 const feature = composer;
+
 feature.callbackQuery(
   "alert_send_the_ammount_of_money_you_want_to_send",
   logHandle("callback-query-currency"),
@@ -70,6 +76,10 @@ feature.callbackQuery(
           },
         },
       },
+    });
+    await ctx.editMessageCaption({
+      caption:
+        `#${getRequestId(ctx.callbackQuery.message?.caption)}_R` ?? "error",
     });
     await ctx.editMessageReplyMarkup({
       reply_markup: {
