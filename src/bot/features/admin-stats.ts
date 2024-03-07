@@ -3,12 +3,12 @@ import { Composer } from "grammy";
 import type { Context } from "#root/bot/context.js";
 import { logHandle } from "#root/bot/helpers/logging.js";
 import { config } from "#root/config.js";
-import { Prisma } from "@prisma/client";
+// import { Prisma } from "@prisma/client";
 
-type Stat = Prisma.PickEnumerable<
-  Prisma.AdminTransactionGroupByOutputType,
-  ("description" | "telegramId")[]
-> & { _count: { id: number } };
+// type Stat = Prisma.PickEnumerable<
+//   Prisma.AdminTransactionGroupByOutputType,
+//   ("description" | "telegramId")[]
+// > & { _count: { id: number } };
 
 const composer = new Composer<Context>();
 
@@ -40,17 +40,22 @@ feature.command(
       },
     });
 
-    const groupedStats: { [key: string]: Stat[] } = stats.reduce(
-      (accumulator, stat) => {
-        const telegramId = String(stat.telegramId); // Convert bigint to string
-        if (!accumulator[telegramId]) {
-          accumulator[telegramId] = [];
-        }
-        accumulator[telegramId].push(stat);
-        return accumulator;
-      },
-      {} as { [key: string]: Stat[] },
+    const filteredStats = stats.filter(
+      (stat) => stat.description !== null && !/\d/.test(stat.description),
     );
+
+    const groupedStats: { [key: string]: typeof filteredStats } =
+      filteredStats.reduce(
+        (accumulator, stat) => {
+          const telegramId = String(stat.telegramId); // Convert bigint to string
+          if (!accumulator[telegramId]) {
+            accumulator[telegramId] = [];
+          }
+          accumulator[telegramId].push(stat);
+          return accumulator;
+        },
+        {} as { [key: string]: typeof filteredStats },
+      );
 
     const message = Object.entries(groupedStats)
       .map(([telegramId, innerStats]) => {
@@ -90,17 +95,22 @@ feature.command(
       },
     });
 
-    const groupedStats: { [key: string]: Stat[] } = stats.reduce(
-      (accumulator, stat) => {
-        const telegramId = String(stat.telegramId); // Convert bigint to string
-        if (!accumulator[telegramId]) {
-          accumulator[telegramId] = [];
-        }
-        accumulator[telegramId].push(stat);
-        return accumulator;
-      },
-      {} as { [key: string]: Stat[] },
+    const filteredStats = stats.filter(
+      (stat) => stat.description !== null && !/\d/.test(stat.description),
     );
+
+    const groupedStats: { [key: string]: typeof filteredStats } =
+      filteredStats.reduce(
+        (accumulator, stat) => {
+          const telegramId = String(stat.telegramId); // Convert bigint to string
+          if (!accumulator[telegramId]) {
+            accumulator[telegramId] = [];
+          }
+          accumulator[telegramId].push(stat);
+          return accumulator;
+        },
+        {} as { [key: string]: typeof filteredStats },
+      );
 
     const message = Object.entries(groupedStats)
       .map(([telegramId, innerStats]) => {
@@ -141,17 +151,22 @@ feature.command(
       },
     });
 
-    const groupedStats: { [key: string]: Stat[] } = stats.reduce(
-      (accumulator, stat) => {
-        const telegramId = String(stat.telegramId); // Convert bigint to string
-        if (!accumulator[telegramId]) {
-          accumulator[telegramId] = [];
-        }
-        accumulator[telegramId].push(stat);
-        return accumulator;
-      },
-      {} as { [key: string]: Stat[] },
+    const filteredStats = stats.filter(
+      (stat) => stat.description !== null && !/\d/.test(stat.description),
     );
+
+    const groupedStats: { [key: string]: typeof filteredStats } =
+      filteredStats.reduce(
+        (accumulator, stat) => {
+          const telegramId = String(stat.telegramId); // Convert bigint to string
+          if (!accumulator[telegramId]) {
+            accumulator[telegramId] = [];
+          }
+          accumulator[telegramId].push(stat);
+          return accumulator;
+        },
+        {} as { [key: string]: typeof filteredStats },
+      );
 
     const message = Object.entries(groupedStats)
       .map(([telegramId, innerStats]) => {
@@ -184,17 +199,22 @@ feature.command(
       },
     });
 
-    const groupedStats: { [key: string]: Stat[] } = stats.reduce(
-      (accumulator, stat) => {
-        const telegramId = String(stat.telegramId); // Convert bigint to string
-        if (!accumulator[telegramId]) {
-          accumulator[telegramId] = [];
-        }
-        accumulator[telegramId].push(stat);
-        return accumulator;
-      },
-      {} as { [key: string]: Stat[] },
+    const filteredStats = stats.filter(
+      (stat) => stat.description !== null && !/\d/.test(stat.description),
     );
+
+    const groupedStats: { [key: string]: typeof filteredStats } =
+      filteredStats.reduce(
+        (accumulator, stat) => {
+          const telegramId = String(stat.telegramId); // Convert bigint to string
+          if (!accumulator[telegramId]) {
+            accumulator[telegramId] = [];
+          }
+          accumulator[telegramId].push(stat);
+          return accumulator;
+        },
+        {} as { [key: string]: typeof filteredStats },
+      );
 
     const message = Object.entries(groupedStats)
       .map(([telegramId, innerStats]) => {

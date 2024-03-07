@@ -479,7 +479,8 @@ feature.callbackQuery(
       });
       await ctx.api.sendPhoto(config.ADMINS_CHAT_ID, photoId, {
         caption: `<a href="https://t.me/${ctx.from?.id}">📇​</a>${ctx.t(
-          ctx.t("admins-group.submited-request-text", {
+          "admins-group.submited-request-text",
+          {
             requestId,
             userId: `${String(ctx.from?.id)} ​`,
             name: escapeHTML(
@@ -496,15 +497,21 @@ feature.callbackQuery(
             userReceivingWallet,
             adminWallet,
             topicLink: getTopicLink(ctx.session.logTopicThreadId),
-          }),
+          },
         )} \n${toHashtag(`from ${fromCurrency}`)}\n${toHashtag(
           `to ${toCurrency}`,
         )}`,
         reply_markup: new InlineKeyboard([
+          // [
+          //   {
+          //     text: ctx.t("request.admin-confirm-receipt"),
+          //     callback_data: `adminConfirmedReceipt:${requestId}:${ctx.from?.id}`,
+          //   },
+          // ],
           [
             {
-              text: ctx.t("request.admin-confirm-receipt"),
-              callback_data: `adminConfirmedReceipt:${requestId}:${ctx.from?.id}`,
+              text: "رد بصورة اثبات التحويل",
+              callback_data: "_",
             },
           ],
           [
@@ -514,6 +521,10 @@ feature.callbackQuery(
             },
           ],
         ]),
+        message_thread_id:
+          toCurrency === "zainCash"
+            ? config.ADMINS_CHAT_ZAINCASH_REQUESTS_THREAD_ID
+            : config.ADMINS_CHAT_PROCESSING_THREAD_ID,
       });
       await ctx.answerCallbackQuery({
         text: ctx.t("request.submitted"),
