@@ -28,7 +28,7 @@
     "@grammyjs/storage-free": "^2.4.1",
     "@grammyjs/storage-prisma": "^2.4.1",
     "@grammyjs/types": "3.4.6",
-    "@prisma/client": "5.7.1",
+    "@prisma/client": "5.11.0",
     "callback-data": "1.1.1",
     "canvas": "^2.11.2",
     "dotenv": "16.3.1",
