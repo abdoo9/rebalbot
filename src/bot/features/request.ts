@@ -477,55 +477,56 @@ feature.callbackQuery(
           }),
         });
       });
-      await ctx.api.sendPhoto(config.ADMINS_CHAT_ID, photoId, {
-        caption: `<a href="https://t.me/${ctx.from?.id}">📇​</a>${ctx.t(
-          "admins-group.submited-request-text",
-          {
-            requestId,
-            userId: `${String(ctx.from?.id)} ​`,
-            name: escapeHTML(
-              `| ${ctx.from?.first_name} ${ctx.from?.last_name ?? ""}`,
-            ),
-            username: ctx.from?.username ?? "not-provided",
-            toCurrency,
-            fromCurrency,
-            amount: `${formatNumber(amount)} ​`,
-            transactionId,
-            rate: `${formatNumber(rate)} ​`,
-            fee: `${formatNumber(fee)} ​`,
-            finalAmount: `${formatNumber(finalAmount)} ​`,
-            userReceivingWallet,
-            adminWallet,
-            topicLink: getTopicLink(ctx.session.logTopicThreadId),
-          },
-        )} \n${toHashtag(`from ${fromCurrency}`)}\n${toHashtag(
-          `to ${toCurrency}`,
-        )}`,
-        reply_markup: new InlineKeyboard([
-          // [
-          //   {
-          //     text: ctx.t("request.admin-confirm-receipt"),
-          //     callback_data: `adminConfirmedReceipt:${requestId}:${ctx.from?.id}`,
-          //   },
-          // ],
-          [
+      await ctx.api
+        .sendPhoto(config.ADMINS_CHAT_ID, photoId, {
+          caption: `<a href="https://t.me/${ctx.from?.id}">📇​</a>${ctx.t(
+            "admins-group.submited-request-text",
             {
-              text: "رد بصورة اثبات التحويل",
-              callback_data: "_",
+              requestId,
+              userId: `${String(ctx.from?.id)} ​`,
+              name: escapeHTML(
+                `| ${ctx.from?.first_name} ${ctx.from?.last_name ?? ""}`,
+              ),
+              username: ctx.from?.username ?? "not-provided",
+              toCurrency,
+              fromCurrency,
+              amount: `${formatNumber(amount)} ​`,
+              transactionId,
+              rate: `${formatNumber(rate)} ​`,
+              fee: `${formatNumber(fee)} ​`,
+              finalAmount: `${formatNumber(finalAmount)} ​`,
+              userReceivingWallet,
+              adminWallet,
+              topicLink: getTopicLink(ctx.session.logTopicThreadId),
             },
-          ],
-          [
-            {
-              text: ctx.t("request.reject"),
-              callback_data: `reject:${requestId}:${ctx.from?.id}`,
-            },
-          ],
-        ]),
-        message_thread_id:
-          toCurrency === "zainCash"
-            ? config.ADMINS_CHAT_ZAINCASH_REQUESTS_THREAD_ID
-            : config.ADMINS_CHAT_PROCESSING_THREAD_ID,
-      });
+          )} \n${toHashtag(`from ${fromCurrency}`)}\n${toHashtag(
+            `to ${toCurrency}`,
+          )}`,
+          reply_markup: new InlineKeyboard([
+            [
+              {
+                text: "رد بصورة اثبات التحويل",
+                callback_data: "_",
+              },
+            ],
+            [
+              {
+                text: ctx.t("request.reject"),
+                callback_data: `reject:${requestId}:${ctx.from?.id}`,
+              },
+            ],
+          ]),
+          message_thread_id:
+            toCurrency === "zainCash"
+              ? config.ADMINS_CHAT_ZAINCASH_REQUESTS_THREAD_ID
+              : config.ADMINS_CHAT_PROCESSING_THREAD_ID,
+        })
+        .then(async (message) => {
+          await ctx.api.pinChatMessage(
+            config.ADMINS_CHAT_ID,
+            message.message_id,
+          );
+        });
       await ctx.answerCallbackQuery({
         text: ctx.t("request.submitted"),
       });
